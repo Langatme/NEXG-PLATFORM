@@ -1,0 +1,222 @@
+<!-- ═══════════════════════════════════════════════════════════════
+NEXG EMAIL CONTROL CENTER — MARKUP
+File: EmailCenterBody.html
+Version: 2.0.1 | Date: 2025-07-24
+
+CHANGES:
+- v2.0.1: verified clean. No dead includes; styles come from
+  EmailCenterCSS.html in the dashboard head.
+- FROM_EMAIL field present; Template Preview modal present.
+- All element IDs preserved — no UX changes.
+NOTE: This file is markup only. Log rows are fetched by EmailCenterJS
+via ccBootstrap()/ccLogs(). If the table is empty, the cause is in the
+server response, not in this file.
+═══════════════════════════════════════════════════════════════ -->
+<div class="app" id="nec-root">
+<!-- Baked template list: read synchronously by Center.init(); survives any async failure. -->
+<script type="application/json" id="nec-templates-data"><?!= necTemplatesJson() ?></script>
+
+<aside class="rail">
+  <div class="brand">
+    <div class="brand-mark">N</div>
+    <div class="brand-text"><span class="brand-name">NEXG</span><span class="brand-sub">Email Ops</span></div>
+  </div>
+  <nav class="nav">
+    <div class="nav-label">Control</div>
+    <div class="nav-item is-active" data-panel="overview">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      Overview
+    </div>
+    <div class="nav-item" data-panel="compose">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4 22-7z"/></svg>
+      Compose
+    </div>
+    <div class="nav-label">System</div>
+    <div class="nav-item" data-panel="templates">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      Templates
+    </div>
+    <div class="nav-item" data-panel="activity">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      Activity Log
+    </div>
+    <div class="nav-item" data-panel="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      Settings
+    </div>
+  </nav>
+  <div class="rail-foot mono">PHASE 2 · v2.1</div>
+</aside>
+
+<main class="stage">
+  <header class="topbar">
+    <div class="crumb"><span class="mono">CONTROL CENTER</span><strong id="crumb-panel">Overview</strong></div>
+    <div class="topbar-right">
+      <span class="sync mono" id="sync-time">—</span>
+      <span class="pill pill-test" id="mode-pill"><span class="dot"></span>TEST MODE</span>
+      <button class="icon-btn" id="refresh-btn" title="Refresh">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <section id="panel-overview" class="panel is-active">
+    <div class="panel-head">
+      <div>
+        <div class="panel-kicker">Communications</div>
+        <h2 class="panel-title">Command Overview</h2>
+        <p class="panel-sub">Every outbound message — rendered, dispatched, and logged.</p>
+      </div>
+      <button class="btn btn-primary" id="overview-compose">+ Compose email</button>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-hero">
+        <div class="stat-label">Total dispatched</div>
+        <div class="stat-number" id="stat-sent">0</div>
+        <div class="stat-foot">logged sends · all time</div>
+      </div>
+      <div class="stat-mini"><div class="stat-label">Failed</div><div class="stat-number red" id="stat-failed">0</div></div>
+      <div class="stat-mini"><div class="stat-label">Test sends</div><div class="stat-number amber" id="stat-test">0</div></div>
+      <div class="stat-mini wide"><div class="stat-label">Last dispatch</div><div class="stat-time" id="stat-last">—</div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">Recent activity</span><button class="link-btn" id="overview-all">View full log →</button></div>
+      <table class="tbl">
+        <thead><tr><th>Time</th><th>Template</th><th>Recipient</th><th>Status</th><th>Mode</th></tr></thead>
+        <tbody id="overview-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="panel-compose" class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="panel-kicker">Dispatch</div>
+        <h2 class="panel-title">Compose</h2>
+        <p class="panel-sub">Pick a template, fill the merge fields, watch it render live.</p>
+      </div>
+    </div>
+    <div class="compose-grid">
+      <div class="card compose-form">
+        <div class="field"><label>Template</label><select id="compose-template"></select></div>
+        <div class="field"><label>Recipient email</label><input type="email" id="compose-recipient" placeholder="merchant@business.com"></div>
+        <div class="field">
+          <label>Send mode</label>
+          <div style="display:flex;gap:6px;">
+            <button type="button" id="compose-mode-test" class="btn btn-ghost" style="flex:1;">🧪 Test → my inbox</button>
+            <button type="button" id="compose-mode-live" class="btn btn-ghost" style="flex:1;">🚀 Live → typed address</button>
+          </div>
+          <p class="helper">Test = redirect to your admin inbox (safe). Live = send to the typed address, for real.</p>
+        </div>
+        <div class="fields-divider">MERGE FIELDS</div>
+        <div id="compose-fields"></div>
+        <button class="btn btn-primary btn-block" id="compose-send">Send email</button>
+        <p class="hint" id="compose-hint"></p>
+      </div>
+      <div class="preview-chrome">
+        <div class="preview-bar">
+          <span class="wd" style="background:#ff5f57"></span>
+          <span class="wd" style="background:#febc2e"></span>
+          <span class="wd" style="background:#28c840"></span>
+          <span class="preview-subject" id="compose-subject">—</span>
+          <span class="preview-hint" id="preview-hint">LIVE PREVIEW</span>
+        </div>
+        <iframe id="compose-frame" class="preview-frame" sandbox="allow-same-origin"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-templates" class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="panel-kicker">Design system</div>
+        <h2 class="panel-title">Templates</h2>
+        <p class="panel-sub">Registered outbound email types and their merge variables.</p>
+      </div>
+    </div>
+    <div class="tpl-grid" id="tpl-grid"></div>
+  </section>
+
+  <section id="panel-activity" class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="panel-kicker">Audit trail</div>
+        <h2 class="panel-title">Activity Log</h2>
+        <p class="panel-sub">Full dispatch history from Email_Logs.</p>
+      </div>
+      <div class="tabs">
+        <div class="tab is-active" data-filter="ALL">ALL</div>
+        <div class="tab" data-filter="SENT">SENT</div>
+        <div class="tab" data-filter="FAILED">FAILED</div>
+      </div>
+    </div>
+    <div class="card">
+      <table class="tbl">
+        <thead><tr><th>Time</th><th>Template</th><th>Recipient</th><th>Status</th><th>Mode</th></tr></thead>
+        <tbody id="activity-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="panel-settings" class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="panel-kicker">Configuration</div>
+        <h2 class="panel-title">Settings</h2>
+        <p class="panel-sub">Writes directly to the Email_Settings sheet.</p>
+      </div>
+      <button class="btn btn-primary" id="settings-save">Save settings</button>
+    </div>
+    <div class="settings-grid">
+      <div class="card">
+        <div class="card-title">Sender identity</div>
+        <div class="field"><label>From name</label><input type="text" id="set-FROM_NAME"></div>
+        <div class="field">
+          <label>From email (verified alias)</label>
+          <input type="email" id="set-FROM_EMAIL" placeholder="merchant@nexgapp.com">
+          <p class="helper">Must be added in Gmail Settings → Accounts → "Send mail as". Leave blank to send from your default Gmail address.</p>
+        </div>
+        <div class="field"><label>Reply-to email</label><input type="email" id="set-REPLY_TO"></div>
+        <div class="field"><label>Company name</label><input type="text" id="set-COMPANY_NAME"></div>
+        <div class="field"><label>Website</label><input type="text" id="set-WEBSITE"></div>
+        <div class="field"><label>Phone</label><input type="text" id="set-PHONE"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Delivery &amp; branding</div>
+        <div class="field"><label>Admin email (test recipient)</label><input type="email" id="set-ADMIN_EMAIL"></div>
+        <div class="field">
+          <label>Logo file ID (Google Drive)</label>
+          <input type="text" id="set-LOGO_FILE_ID" placeholder="1aBcDeFgHiJkLmNoPqRsTuVwXyZ">
+          <p class="helper">PNG on transparent background, white version, ~300×96px. From the Drive URL: /file/d/<strong>THIS_PART</strong>/view</p>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-name">Test mode</div><div class="toggle-desc">Redirects every send to the admin email and prefixes subjects with [TEST].</div></div>
+          <label class="switch"><input type="checkbox" id="set-TEST_MODE"><span class="track"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-name">Logging</div><div class="toggle-desc">Writes every email attempt to the Email_Logs sheet.</div></div>
+          <label class="switch"><input type="checkbox" id="set-ENABLE_LOGGING"><span class="track"></span></label>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Template preview modal (used by Templates → Preview) -->
+<div class="modal-veil" id="preview-veil">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-kicker">Template preview</div>
+        <div class="modal-title" id="modal-title">—</div>
+      </div>
+      <button class="icon-btn" id="modal-close" title="Close" aria-label="Close preview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <div class="modal-body"><iframe id="modal-frame" class="preview-frame" sandbox="allow-same-origin"></iframe></div>
+  </div>
+</div>
+
+<div id="toast-root"></div>
+</div>

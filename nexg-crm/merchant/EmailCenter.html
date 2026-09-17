@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NEXG Email Control Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <?!= include('EmailCenterCSS') ?>
+  </head>
+  <body style="margin:0">
+    <!-- Standalone entry point (web-app /exec link + in-sheet dialog).
+         Markup is fetched via getEmailCenterMarkup() so the baked
+         <?!= necTemplatesJson() ?> block is server-evaluated exactly
+         like the in-dashboard modal path. -->
+    <div id="nec-mount" style="position:fixed;inset:0;overflow:hidden"></div>
+    <div id="nec-standlone-error" style="display:none;font-family:sans-serif;padding:48px;max-width:560px;margin:0 auto"></div>
+    <?!= include('EmailCenterJS') ?>
+    <script>
+      (function () {
+        function showError(msg) {
+          var box = document.getElementById('nec-standlone-error');
+          if (box) {
+            box.style.display = 'block';
+            box.innerHTML = '<h2 style="color:#0a1c38">Email Control Center unavailable</h2>'
+              + '<p style="color:#475569;line-height:1.6">' + String(msg || '').replace(/</g, '&lt;') + '</p>'
+              + '<p style="color:#64748b;font-size:13px">If you should have access, ask the owner to add your email to the Email_Settings sheet → ADMIN_USERS (comma-separated), or run <code>addEmailCenterAdmin("you@domain.com")</code> from the script editor.</p>';
+          }
+        }
+        function boot() {
+          try {
+            google.script.run
+              .withSuccessHandler(function (html) {
+                var m = document.getElementById('nec-mount');
+                if (!m) return;
+                m.innerHTML = html;
+                try { Center.init(); } catch (e) { showError('Init failed: ' + (e && e.message ? e.message : e)); }
+              })
+              .withFailureHandler(function (err) {
+                document.getElementById('nec-mount').innerHTML = '';
+                showError((err && err.message) ? err.message : String(err));
+              })
+              .getEmailCenterMarkup();
+          } catch (e) {
+            showError('Google Apps Script bridge not available. Open this from the Sheet: NEXG CRM → Email Control Center.');
+          }
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+        else boot();
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base target="_top">
+  <?!= include('CSS') ?>
+  <?!= include('Forms') ?>
+  <?!= include('Motion') ?>      <!-- ← add this, AFTER CSS -->
+</head>
+
+<body class="bg-surface min-h-screen">
+
+  <div id="toast-notification" class="fixed top-3 left-1/2 -translate-x-1/2 z-[200] px-4 py-2.5 rounded-xl bg-surface-higher border border-gold/25 shadow-2xl shadow-black/70">
+    <span id="toast-message" class="text-[11px] font-extrabold text-gold"></span>
+  </div>
+
+  <header class="sticky top-0 z-50 bg-black/85 backdrop-blur-xl border-b border-white/[0.06] px-3 py-2.5">
+    <div class="flex items-center px-1 pb-2" role="img" aria-label="NEXG">
+      <svg class="nx-logo-svg" style="height:22px;width:auto" viewBox="0 185 396 140" xmlns="http://www.w3.org/2000/svg"><path fill="#F5F5F7" stroke="#F5F5F7" stroke-width="4.1689" d="M16.7,205.85H29c1.32,0,2.54,0.66,3.19,1.72l34.52,56.49c1.85,3.02,6.85,1.82,6.85-1.65v-53.19c0-1.86,1.64-3.37,3.66-3.37h11.55c2.02,0,3.66,1.51,3.66,3.37v98.75c0,1.86-1.64,3.37-3.66,3.37H76.42c-1.32,0-2.54-0.66-3.19-1.71l-34.47-56.3c-1.85-3.02-6.85-1.81-6.85,1.65v52.99c0,1.86-1.64,3.37-3.66,3.37H16.7c-2.02,0-3.66-1.51-3.66-3.37v-98.75C13.04,207.35,14.68,205.85,16.7,205.85z"/><path fill="#F5F5F7" stroke="#F5F5F7" stroke-width="2" d="M110.74,206.37h54.52c2.74,0,4.96,2.22,4.96,4.96v9.75c0,2.74-2.22,4.96-4.96,4.96h-32.21c-2.74,0-4.96,2.22-4.96,4.96v9.18c0,2.74,2.22,4.96,4.96,4.96h32.21c2.74,0,4.96,2.22,4.96,4.96v9.4c0,2.74-2.22,4.96-4.96,4.96h-32.21c-2.74,0-4.96,2.22-4.96,4.96v17.87c0,2.74,2.22,4.96,4.96,4.96h32.21c2.74,0,4.96,2.22,4.96,4.96v9.83c0,2.74-2.22,4.96-4.96,4.96h-54.52c-2.74,0-4.96-2.22-4.96-4.96v-95.71C105.78,208.59,108,206.37,110.74,206.37z"/><path fill="#F5F5F7" d="M268.53,311.93c1.13-0.31,1.68-1.49,1.14-2.46l-26.25-47.63c-0.42-0.7-1.49-0.74-1.97-0.08l-11.19,15.55c-0.24,0.33-0.26,0.75-0.05,1.1l17.97,30.35c1.18,2,3.45,3.24,5.92,3.24h13.89C268.17,312,268.36,311.98,268.53,311.93L268.53,311.93z"/><path fill="#F5F5F7" d="M244.7,249.93l24.85-34.43c2.98-4.13-0.22-9.66-5.6-9.66h-8.8c-2.25,0-4.34,1.04-5.59,2.76l-20.56,28.41L240,250.09C241.22,251.53,243.61,251.45,244.7,249.93z"/><path fill="#F8A61C" d="M227.57,240.07l-22.84-31.63c-1-1.38-2.67-2.21-4.46-2.21h-12.09c-4.29,0-6.84,4.41-4.46,7.71l29.45,40.78c1.2,1.67,1.2,3.84,0,5.5l-31.89,44.07c-2.38,3.29,0.17,7.71,4.46,7.71h12.23c1.79,0,3.47-0.83,4.46-2.21l25.25-34.98l0.07,0.1l11.18-15.47c1.27-1.76,1.19-4.06-0.19-5.75l-10.99-13.38C227.7,240.23,227.63,240.15,227.57,240.07z"/><path fill="#F8A61E" stroke="#F8A61E" stroke-width="0.8" d="M341.7,198.16L341.7,198.16c-2.73,0.77-5.74,2-5.47,6.05c0,0.01-0.01,0.03-0.01,0.04c-0.33,1.78,0.65,3.53,2.03,3.77c12.34,2.13,21.36,8.92,28.29,18.34c3.43,4.66,0.16,11.26-5.63,11.31l-1.59,0.01c-1.99,0.02-3.87-0.83-5.26-2.26c-12.23-12.63-32.44-14.32-43.66-0.85c-17.31,20.79-7.67,59.27,19.7,56.15c5.51-0.63,15.22-3.17,18.8-6.04c0.5-0.4,0.97-0.8,1.42-1.2c4.88-4.37,1.7-12.46-4.85-12.36l-7.24,0.11c-3.93,0.06-7.15-3.08-7.19-7.01l-0.06-5.75c-0.04-3.92,3.1-7.12,7.02-7.16l29.16-0.28c3.91-0.04,7.07,3.09,7.16,7c0.58,25.32-9.66,53.38-43.32,53.96c-49.8,0.87-64.36-59.89-34.62-89.85c9.11-9.18,19.33-13.39,30.87-14.2c1.64-0.12,2.88-2,2.69-4.13c0-0.03,0-0.05-0.01-0.08c-0.28-2.99-0.85-4.56-5.34-5.55l0,0.05c-1.73-0.69-2.99-2.85-2.99-5.41v-0.01c0-1.65,1.02-2.99,2.29-2.99h17.84c2.38,0,3.85,3.53,2.46,6.07C343.62,196.88,342.83,197.74,341.7,198.16z"/></svg>
+    </div>
+    <div class="flex items-center gap-2">
+      <div id="mch-selector-collapsed" onclick="expandMerchantSearch()" class="search-bar flex items-center gap-2 px-3 flex-1 cursor-pointer">
+        <svg class="w-4 h-4 text-faint shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+        <span id="mch-collapsed-name" class="text-[12px] font-bold text-faint truncate flex-1">Select merchant...</span>
+        <span id="mch-collapsed-stage-badge" class="tag tag-gold shrink-0">Lead</span>
+      </div>
+      <button onclick="refreshActiveSheetRow()" class="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center text-muted hover:text-gold hover:border-gold/25 transition-all shrink-0" title="Sync">
+        <svg id="sync-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M16 16h5v5"></path></svg>
+      </button>
+      <button onclick="openModal('create-merchant-drawer')" class="w-9 h-9 rounded-xl bg-gold/10 border border-gold/25 flex items-center justify-center text-gold hover:bg-gold/15 transition-all shrink-0" title="New Merchant">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
+      </button>
+    </div>
+    <div id="mch-selector-expanded" class="hidden mt-2.5">
+      <div class="search-bar flex items-center gap-2 px-3">
+        <svg class="w-4 h-4 text-faint shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+        <input id="mch-search-input" type="text" placeholder="Search name, ID, category, rep..." oninput="filterMerchantSearchResults()" class="flex-1">
+        <button onclick="collapseMerchantSearch()" class="text-faint hover:text-white transition-colors text-base leading-none shrink-0">✕</button>
+      </div>
+      <div id="mch-search-results" class="mt-2 max-h-56 overflow-y-auto no-scrollbar flex flex-col gap-1.5 bg-surface-raised border border-white/[0.06] rounded-xl p-2"></div>
+    </div>
+  </header>
+
+  <main class="px-3 pt-3 pb-28 flex flex-col gap-3">
+
+    <!-- OVERVIEW -->
+    <div id="tab-content-overview" class="flex flex-col gap-3">
+
+      <section class="grid grid-cols-3 gap-2">
+        <button onclick="openModal('contact-modal')" class="action-btn">
+          <svg class="text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+          <span class="text-[9px] font-black">Contact</span>
+        </button>
+        <button onclick="openModal('follow-up-modal')" class="action-btn">
+          <svg class="text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <span class="text-[9px] font-black">Follow Up</span>
+        </button>
+        <button onclick="openModal('meeting-modal')" class="action-btn">
+          <svg class="text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span class="text-[9px] font-black">Meeting</span>
+        </button>
+      </section>
+
+      <section class="card card-hover">
+        <div class="p-4">
+          <div class="flex items-start justify-between cursor-pointer" onclick="toggleMerchantExpand()">
+            <div class="flex flex-col gap-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <h2 id="mch-display-name" class="text-[15px] font-black text-white truncate">cAR Restaurant</h2>
+                <span id="mch-display-badge" class="shrink-0 tag tag-gold">ACTIVE</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[9.5px] text-faint">
+                <span id="mch-display-id" class="font-mono">NXG-DEL-RES-000001</span>
+                <span class="text-ghost">•</span>
+                <span id="mch-tag-vertical">Delivery › Restaurants</span>
+              </div>
+            </div>
+            <svg id="mch-expand-chevron" class="chevron w-4 h-4 text-faint shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg>
+          </div>
+          <div class="grid grid-cols-2 gap-x-3 gap-y-2.5 mt-4">
+            <div><span class="merchant-label block mb-1">Contact</span><span id="mch-detail-contact-person" class="merchant-value">John Doe</span></div>
+            <div><span class="merchant-label block mb-1">Phone</span><span id="mch-detail-phone" class="merchant-value">+254 712 345 678</span></div>
+            <div><span class="merchant-label block mb-1">Email</span><span id="mch-detail-email" class="merchant-value truncate block">john@car.com</span></div>
+            <div><span class="merchant-label block mb-1">Sales Rep</span><span id="mch-detail-rep" class="merchant-value text-gold">Peter Kimani</span></div>
+          </div>
+        </div>
+        <div id="mch-expand-content" class="expand-content">
+          <div class="px-4 pb-4 border-t border-white/[0.06] pt-3">
+            <div class="grid grid-cols-2 gap-x-3 gap-y-2.5">
+              <div><span class="merchant-label block mb-1">Position</span><span id="mch-detail-position" class="merchant-value">General Manager</span></div>
+              <div><span class="merchant-label block mb-1">Region</span><span id="mch-detail-region" class="merchant-value">Nairobi CBD</span></div>
+              <div><span class="merchant-label block mb-1">Next Follow Up</span><span id="mch-detail-next-followup" class="merchant-value">Tomorrow 10:00 AM</span></div>
+              <div><span class="merchant-label block mb-1">Branch Type</span><span id="mch-tag-branch-type" class="merchant-value">Single Branch</span></div>
+              <div><span class="merchant-label block mb-1">Sheet Row</span><span id="mch-detail-row" class="merchant-value font-mono">Row 2</span></div>
+            </div>
+            <span id="mch-tag-rep" class="hidden"></span>
+            <button onclick="openModal('edit-merchant-drawer')" class="btn-ghost w-full mt-4 py-2 text-[11px]">Edit Profile</button>
+            <div class="mt-4 pt-3 border-t border-white/[0.06]">
+              <div class="flex items-center justify-between mb-2"><span class="merchant-label">Pipeline</span><span id="pipe-current-label" class="text-[10px] font-black text-gold">Lead</span></div>
+              <div id="mini-pipeline-track" class="pipe-track"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card p-4">
+        <div class="flex items-center justify-between mb-3">
+          <span class="section-label">Workflow</span>
+          <button onclick="toggleWorkflowExpand()" class="flex items-center gap-1 text-[9px] font-black text-gold hover:text-gold-light transition-colors">
+            <span id="workflow-toggle-label">Expand</span>
+            <svg id="workflow-chevron" class="chevron w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg>
+          </button>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="openModal('demo-modal')" class="workflow-btn"><svg class="text-gold shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg><span class="flex flex-col min-w-0"><span class="text-[10.5px] font-black text-white truncate">Demo</span><span class="text-[8px] text-faint truncate">Walkthrough</span></span></button>
+          <button onclick="openModal('proposal-modal')" class="workflow-btn"><svg class="text-gold shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg><span class="flex flex-col min-w-0"><span class="text-[10.5px] font-black text-white truncate">Proposal</span><span class="text-[8px] text-faint truncate">Send quote</span></span></button>
+        </div>
+        <div id="workflow-extra" class="hidden grid grid-cols-2 gap-2 mt-2">
+          <button onclick="openModal('negotiation-modal')" class="workflow-btn"><svg class="text-gold shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><span class="flex flex-col min-w-0"><span class="text-[10.5px] font-black text-white truncate">Negotiate</span><span class="text-[8px] text-faint truncate">Terms</span></span></button>
+          <button onclick="openModal('contract-modal')" class="workflow-btn"><svg class="text-gold shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg><span class="flex flex-col min-w-0"><span class="text-[10.5px] font-black text-white truncate">Contract</span><span class="text-[8px] text-faint truncate">Agreement</span></span></button>
+          <button onclick="openModal('onboarding-modal')" class="workflow-btn"><svg class="text-gold shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg><span class="flex flex-col min-w-0"><span class="text-[10.5px] font-black text-white truncate">Onboard</span><span class="text-[8px] text-faint truncate">Setup</span></span></button>
+          <button onclick="openModal('live-modal')" class="workflow-btn"><svg class="text-gold shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg><span class="flex flex-col min-w-0"><span class="text-[10.5px] font-black text-white truncate">Go Live</span><span class="text-[8px] text-faint truncate">Activate</span></span></button>
+          <button onclick="openModal('lost-modal')" class="workflow-btn workflow-btn-danger col-span-2"><svg class="text-danger shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg><span class="flex flex-col min-w-0"><span class="text-[10.5px] font-black text-white truncate">Mark Lost</span><span class="text-[8px] text-faint truncate">Close lead</span></span></button>
+        </div>
+      </section>
+
+      <section class="card p-4">
+        <div class="flex items-center justify-between mb-2"><span class="section-label">Next Action</span><span id="rec-action-time" class="text-[8.5px] font-black text-gold px-2 py-0.5 rounded-md bg-gold/10 border border-gold/20">Now</span></div>
+        <h3 id="rec-action-title" class="text-[13.5px] font-black text-white mb-1">Execute Contact Outreach</h3>
+        <p id="rec-action-reason" class="text-[10.5px] text-muted/70 leading-relaxed mb-3">Call merchant decision maker to present NEXG platform benefits.</p>
+        <div class="flex items-center justify-between"><span id="rec-action-date" class="text-[9.5px] text-faint font-mono">Target: Today</span><button onclick="executeRecommendedAction()" class="btn-gold px-3.5 py-2 text-[10.5px]">Take Action →</button></div>
+      </section>
+
+      <section class="grid grid-cols-4 gap-2">
+        <div class="stat-card" onclick="goToTimeline('activities')"><div class="stat-number" id="stat-total-interactions">0</div><div class="stat-label">Activity</div></div>
+        <div class="stat-card" onclick="goToTimeline('meetings')"><div class="stat-number" id="stat-total-meetings">0</div><div class="stat-label">Meetings</div></div>
+        <div class="stat-card" onclick="goToTimeline('followups')"><div class="stat-number" id="stat-pending-followups">0</div><div class="stat-label">Follows</div></div>
+        <div class="stat-card" onclick="switchTab('feedback')"><div class="stat-number" id="stat-total-feedback">0</div><div class="stat-label">Feedback</div></div>
+      </section>
+    </div>
+
+        <!-- TIMELINE -->
+    <div id="tab-content-timeline" class="hidden flex flex-col gap-3">
+
+      <!-- Activity Stream — collapsible -->
+      <section class="card p-4">
+        <div class="section-toggle flex items-center justify-between" onclick="toggleActivityStream()">
+          <div class="flex items-center gap-2">
+            <span class="section-label">Activity Stream</span>
+            <span id="stream-count-badge" class="text-[8.5px] text-faint font-mono">0 records</span>
+          </div>
+          <svg id="activity-stream-chevron" class="chevron rotated w-3.5 h-3.5 text-faint shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg>
+        </div>
+        <div id="activity-stream-content" class="expand-section open">
+          <div class="flex gap-1.5 mt-3 mb-3 flex-wrap">
+            <button id="stream-filter-all" class="px-2.5 py-1.5 rounded-lg text-[9.5px] font-black transition-all bg-gold text-black shadow-lg shadow-gold/20" onclick="setStreamFilter('all')">All</button>
+            <button id="stream-filter-activities" class="px-2.5 py-1.5 rounded-lg text-[9.5px] font-black transition-all text-muted hover:text-offwhite" onclick="setStreamFilter('activities')">Activities</button>
+            <button id="stream-filter-meetings" class="px-2.5 py-1.5 rounded-lg text-[9.5px] font-black transition-all text-muted hover:text-offwhite" onclick="setStreamFilter('meetings')">Meetings</button>
+            <button id="stream-filter-followups" class="px-2.5 py-1.5 rounded-lg text-[9.5px] font-black transition-all text-muted hover:text-offwhite" onclick="setStreamFilter('followups')">Follows</button>
+          </div>
+          <div id="activities-timeline-container" class="flex flex-col"></div>
+        </div>
+      </section>
+
+      <!-- Pipeline Journey — collapsible -->
+      <section class="card p-4">
+        <div class="section-toggle flex items-center justify-between" onclick="togglePipelineJourney()">
+          <span class="section-label">Pipeline Journey</span>
+          <svg id="pipeline-journey-chevron" class="chevron rotated w-3.5 h-3.5 text-faint shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg>
+        </div>
+        <div id="pipeline-journey-content" class="expand-section open">
+          <div id="timeline-pipeline-track" class="flex flex-col mt-3"></div>
+        </div>
+      </section>
+
+      <!-- Stage Timestamps — static -->
+      <section class="card p-4">
+        <span class="section-label block mb-2.5">Stage Timestamps</span>
+        <div id="stage-timestamps-container">
+          <div class="stage-ts-row"><span class="stage-ts-label">Created</span><span class="stage-ts-value" id="ts-created">—</span></div>
+          <div class="stage-ts-row"><span class="stage-ts-label">Contacted</span><span class="stage-ts-value" id="ts-contacted">—</span></div>
+          <div class="stage-ts-row"><span class="stage-ts-label">Follow Up</span><span class="stage-ts-value" id="ts-followup">—</span></div>
+          <div class="stage-ts-row"><span class="stage-ts-label">Meeting</span><span class="stage-ts-value" id="ts-meeting">—</span></div>
+          <div class="stage-ts-row"><span class="stage-ts-label">Demo</span><span class="stage-ts-value" id="ts-demo">—</span></div>
+          <div class="stage-ts-row"><span class="stage-ts-label">Updated</span><span class="stage-ts-value" id="ts-updated">—</span></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- FEEDBACK -->
+    <div id="tab-content-feedback" class="hidden flex flex-col gap-3">
+      <section class="card p-4">
+        <span class="section-label block mb-2.5">Log Feedback</span>
+        <div class="flex gap-1.5 mb-2.5">
+          <button id="sentiment-btn-Positive" class="px-2.5 py-1.5 rounded-lg text-[9.5px] font-black border transition-all bg-gold/10 text-gold border-gold/25" onclick="setFeedbackSentiment('Positive')">+ Positive</button>
+          <button id="sentiment-btn-Neutral" class="px-2.5 py-1.5 rounded-lg text-[9.5px] font-black border transition-all bg-white/[0.04] text-muted border-white/[0.08]" onclick="setFeedbackSentiment('Neutral')">Neutral</button>
+          <button id="sentiment-btn-Negative" class="px-2.5 py-1.5 rounded-lg text-[9.5px] font-black border transition-all bg-white/[0.04] text-muted border-white/[0.08]" onclick="setFeedbackSentiment('Negative')">− Negative</button>
+        </div>
+        <div class="flex gap-2">
+          <input id="feedback-text-input" type="text" class="nx-input flex-1" placeholder="Type observation or feedback...">
+          <button onclick="submitDirectFeedback()" class="btn-gold px-3.5 shrink-0">Add</button>
+        </div>
+      </section>
+      <section class="card p-4">
+        <div class="flex items-center justify-between mb-2.5"><span class="section-label">Compiled</span><span id="feedback-count-badge" class="text-[8.5px] text-faint font-mono">0 Points</span></div>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+            <div class="flex items-center gap-1.5 mb-2"><span class="w-1.5 h-1.5 rounded-full bg-gold"></span><span class="text-[9.5px] font-black text-offwhite">Positive (<span id="compiled-positive-count">0</span>)</span></div>
+            <div id="compiled-positive-list" class="flex flex-col gap-1.5"><span class="text-[9.5px] text-muted/25 italic">No positive points</span></div>
+          </div>
+          <div class="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+            <div class="flex items-center gap-1.5 mb-2"><span class="w-1.5 h-1.5 rounded-full bg-faint"></span><span class="text-[9.5px] font-black text-offwhite">Objections (<span id="compiled-negative-count">0</span>)</span></div>
+            <div id="compiled-negative-list" class="flex flex-col gap-1.5"><span class="text-[9.5px] text-muted/25 italic">No objections</span></div>
+          </div>
+        </div>
+      </section>
+      <section class="card p-4">
+        <span class="section-label block mb-2.5">Raw Stream</span>
+        <div id="feedback-raw-stream-container" class="flex flex-col gap-2"></div>
+      </section>
+    </div>
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="flex gap-2">
+      <button id="tab-btn-overview" class="nav-btn active" onclick="switchTab('overview')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span>Overview</span></button>
+      <button id="tab-btn-timeline" class="nav-btn" onclick="switchTab('timeline')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg><span>Timeline</span></button>
+      <button id="tab-btn-feedback" class="nav-btn" onclick="switchTab('feedback')"><span class="relative"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span id="feedback-badge-count" class="nav-badge hidden">0</span></span><span>Feedback</span></button>
+    </div>
+  </nav>
+
+
+  <?!= include('Modals') ?>
+  <?!= include('JS') ?>
+  <?!= include('MotionJS') ?>    <!-- ← add this, AFTER JS -->
+</body>
+</html>

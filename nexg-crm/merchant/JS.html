@@ -1,0 +1,1486 @@
+<script>
+/***********************************************************************
+ * NEXG Smart Panel — Client Controller v5.0 (Canonical)
+ * Black / Gold / White Glass Morphism
+ * Single source of truth — no duplicates, no dead code.
+ ***********************************************************************/
+
+/* ═══ CONSTANTS ═════════════════════════════════════════════════ */
+
+const SUBCATEGORIES = {
+  Delivery:    ["Restaurants", "Groceries", "Retail", "Pharmacy"],
+  Concierge:   ["Laundry", "Dry Cleaning", "Housekeeping", "Special Requests"],
+  Mobility:    ["Airport Transfer", "Car Hire", "Car Wash", "Chauffeur"],
+  Wellness:    ["Spa", "Massage", "Beauty", "Fitness"],
+  Experiences: ["Tours", "Safaris", "Events", "Photography"]
+};
+
+const CATEGORY_DESCRIPTIONS = {
+  Delivery:    "Food delivery, grocery dispatch, retail logistics, pharmacy.",
+  Concierge:   "Laundry, dry cleaning, housekeeping, special requests.",
+  Mobility:    "Airport transfers, car hire, car wash, chauffeur.",
+  Wellness:    "Spa, massage, beauty, fitness subscriptions.",
+  Experiences: "Tours, safaris, events booking, photography."
+};
+
+const PIPELINE_STAGES = [
+  { key: 'Lead',        label: 'Lead',      desc: 'Initial prospect. Verify decision maker & category.' },
+  { key: 'Contact',     label: 'Contact',   desc: 'Outreach via Phone / WhatsApp / Visit. Build rapport.' },
+  { key: 'Follow Up',   label: 'Follow',    desc: 'Active reminders. Address questions and objections.' },
+  { key: 'Meeting',     label: 'Meeting',   desc: 'Executive presentation. Capture interest and concerns.' },
+  { key: 'Demo',        label: 'Demo',      desc: 'Live product walkthrough on POS & portal.' },
+  { key: 'Proposal',    label: 'Proposal',  desc: 'Formal quote & terms sent to client.' },
+  { key: 'Negotiation', label: 'Negotiate', desc: 'Finalizing pricing, commission and SLA.' },
+  { key: 'Contract',    label: 'Contract',  desc: 'Service agreement issued, signed and registered.' },
+  { key: 'Onboarding',  label: 'Onboard',   desc: 'Training, documents, POS config and signage.' },
+  { key: 'Live',        label: 'Live',      desc: 'Merchant account active and taking payments.' }
+];
+
+/* ═══ STATE ═════════════════════════════════════════════════════ */
+
+let currentMerchant = {
+  row: 2,
+  id: "NXG-DEL-RES-000001",
+  name: "cAR Restaurant",
+  mainCategory: "Delivery",
+  subCategory: "Restaurants",
+  contactPerson: "John Doe",
+  position: "General Manager",
+  phone: "+254 712 345 678",
+  altPhone: "",
+  whatsapp: "+254 712 345 678",
+  email: "john@car.com",
+  website: "",
+  address: "Nairobi CBD",
+  branchType: "Single",
+  branches: 1,
+  salesRep: "Peter Kimani",
+  leadSource: "Web Campaign",
+  priority: "Medium",
+  pipeline: "Lead",
+  decisionMaker: "John Doe",
+  decision: "",
+  nextFollowUp: "Tomorrow 10:00 AM",
+  notes: "",
+  createdAt: "2026-07-20 09:30:00",
+  updatedAt: "2026-07-22 14:30:00",
+  activities: [
+    {
+      id: 'ACT-1721644200000-847', type: 'Phone Call Contact', action: 'Contact',
+      timestamp: '2026-07-22 14:30', summary: 'Discussed onboarding timeline and POS terminals',
+      rep: 'Peter Kimani', outcome: 'Interested', contactPerson: 'John Doe'
+    }
+  ],
+  meetings: [
+    {
+      id: 'MTG-1721557800000-231', date: '2026-07-21', time: '11:00',
+      type: 'Virtual Meeting', meetingType: 'Virtual', contactPerson: 'John Doe',
+      purpose: 'Product walkthrough', result: 'Demo Completed', outcome: 'Demo Completed'
+    }
+  ],
+  followUps: [
+    {
+      id: 'FU-1721905800000-445', date: '2026-07-25',
+      reason: 'Contract follow up', nextAction: 'Send final quote', status: 'Pending'
+    }
+  ],
+  discussionPoints: [
+    {
+      id: 'DP-1721644500000-912', sentiment: 'Positive', type: 'Positive',
+      stage: 'Contact', timestamp: '2026-07-22 14:35',
+      text: 'Highly excited about offline mode and multi-terminal sync.',
+      point: 'Highly excited about offline mode.'
+    }
+  ]
+};
+
+let allMerchants = [];
+let streamFilter = 'all';
+let selectedFeedbackSentiment = 'Positive';
+let modalDiscussionPoints = [];
+let merchantExpanded = false;
+let timelineStageDetailIdx = -1;
+let workflowExpanded = false;
+
+/* ═══ CORE UTILITIES ════════════════════════════════════════════ */
+
+function isGAS() {
+  return typeof google !== 'undefined' && google.script && google.script.run;
+}
+
+function setTxt(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.innerText = value;
+}
+
+function escapeHtml_(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast-notification');
+  const msgEl = document.getElementById('toast-message');
+  if (!el || !msgEl) return;
+  msgEl.innerText = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+function combineDateTime(dateId, timeId) {
+  const d = document.getElementById(dateId);
+  const t = document.getElementById(timeId);
+  const dv = d ? d.value : '';
+  const tv = t ? t.value : '';
+  if (!dv && !tv) return '';
+  return (dv || getFormattedDateToday()) + ' ' + (tv || '10:00');
+}
+
+/* ═══ DATE / TIME HELPERS ═══════════════════════════════════════ */
+
+function getFormattedNow() {
+  const d = new Date();
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return d.getDate() + " " + months[d.getMonth()] + " " + d.getFullYear() + " " +
+    d.getHours().toString().padStart(2,'0') + ":" + d.getMinutes().toString().padStart(2,'0');
+}
+
+function getFormattedDateToday() {
+  const d = new Date();
+  return d.getFullYear() + "-" + (d.getMonth()+1).toString().padStart(2,'0') + "-" +
+    d.getDate().toString().padStart(2,'0');
+}
+
+function getFormattedDateTomorrow() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return d.getFullYear() + "-" + (d.getMonth()+1).toString().padStart(2,'0') + "-" +
+    d.getDate().toString().padStart(2,'0');
+}
+
+function getFormattedTimeNow() {
+  const d = new Date();
+  return d.getHours().toString().padStart(2,'0') + ":" + d.getMinutes().toString().padStart(2,'0');
+}
+
+/* ═══ TABS & NAVIGATION ═════════════════════════════════════════ */
+
+function switchTab(tab) {
+  ['overview','timeline','feedback'].forEach(t => {
+    const content = document.getElementById('tab-content-' + t);
+    const btn = document.getElementById('tab-btn-' + t);
+    if (content) content.classList.add('hidden');
+    if (btn) btn.className = 'nav-btn';
+  });
+  const active = document.getElementById('tab-content-' + tab);
+  const activeBtn = document.getElementById('tab-btn-' + tab);
+  if (active) active.classList.remove('hidden');
+  if (activeBtn) activeBtn.className = 'nav-btn active';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  pokeBottomNav();
+}
+
+function goToTimeline(filter) {
+  switchTab('timeline');
+  setStreamFilter(filter);
+}
+
+function setStreamFilter(filter) {
+  streamFilter = filter;
+  ['all','activities','meetings','followups'].forEach(f => {
+    const btn = document.getElementById('stream-filter-' + f);
+    if (btn) btn.className = "px-2.5 py-1.5 rounded-lg text-[9.5px] font-black transition-all text-muted hover:text-offwhite";
+  });
+  const activeBtn = document.getElementById('stream-filter-' + filter);
+  if (activeBtn) {
+    activeBtn.className = "px-2.5 py-1.5 rounded-lg text-[9.5px] font-black transition-all bg-gold text-black shadow-lg shadow-gold/20";
+  }
+  renderActivitiesTimeline();
+}
+
+/* ═══ MODALS ════════════════════════════════════════════════════ */
+
+function openModal(id) {
+  modalDiscussionPoints = [];
+  const overlay = document.getElementById(id);
+  if (overlay) {
+    overlay.classList.add('active');
+    overlay.classList.remove('hidden');
+    prefillModalFields(id);
+  }
+  // reset DP blocks
+  ['contact','fu','mtg'].forEach(p => {
+    setModalSentiment(p, 'Positive');
+    const c = document.getElementById(p + '-dp-count'); if (c) c.innerText = '0';
+    const l = document.getElementById(p + '-dp-list');  if (l) l.innerHTML = '';
+  });
+}
+
+function closeModal(id) {
+  const overlay = document.getElementById(id);
+  if (overlay) {
+    overlay.classList.remove('active');
+    setTimeout(() => overlay.classList.add('hidden'), 260);
+  }
+  modalDiscussionPoints = [];
+  const containers = overlay ? overlay.querySelectorAll('.modal-dp-list-container') : [];
+  containers.forEach(c => c.innerHTML = '');
+}
+
+function prefillModalFields(id) {
+  const tomorrow = getFormattedDateTomorrow();
+  const today = getFormattedDateToday();
+  const nowTime = getFormattedTimeNow();
+  
+  if (id === 'contact-modal') {
+    const fd = document.getElementById('contact-follow-up-date'); if (fd) fd.value = tomorrow;
+    const ft = document.getElementById('contact-follow-up-time'); if (ft) ft.value = '10:00';
+    const p  = document.getElementById('contact-person-input'); if (p) p.value = currentMerchant.contactPerson || '';
+  }
+  else if (id === 'follow-up-modal') {
+    const r = document.getElementById('follow-up-reason-input'); if (r) r.value = 'Follow up on previous contact / request';
+    const nd = document.getElementById('follow-up-next-date'); if (nd) nd.value = tomorrow;
+    const nt = document.getElementById('follow-up-next-time'); if (nt) nt.value = '10:00';
+  }
+  else if (id === 'meeting-modal') {
+    const fd = document.getElementById('meeting-follow-up-date'); if (fd) fd.value = tomorrow;
+    const ft = document.getElementById('meeting-follow-up-time'); if (ft) ft.value = '11:00';
+    const p  = document.getElementById('meeting-contact-person'); if (p) p.value = currentMerchant.contactPerson || '';
+    // ▼ Prefill meeting date/time and default email toggle to YES
+    const md = document.getElementById('meeting-date-input'); if (md) md.value = today;
+    const mt = document.getElementById('meeting-time-input'); if (mt) mt.value = nowTime;
+    const me = document.getElementById('meeting-send-email'); if (me) me.value = 'YES';
+  }
+  else if (id === 'proposal-modal') {
+    const pd = document.getElementById('proposal-date-input'); if (pd) pd.value = today;
+    const pe = document.getElementById('proposal-send-email'); if (pe) pe.value = 'YES';
+  }
+  else if (id === 'contract-modal') {
+    const cd = document.getElementById('contract-date-input'); if (cd) cd.value = today;
+    const ce = document.getElementById('contract-send-email'); if (ce) ce.value = 'YES';
+  }
+  else if (id === 'onboarding-modal') {
+    const oe = document.getElementById('onboarding-send-email'); if (oe) oe.value = 'YES';
+  }
+  else if (id === 'live-modal') {
+    const ld = document.getElementById('live-date-input'); if (ld) ld.value = today;
+    const le = document.getElementById('live-send-email'); if (le) le.value = 'YES';
+  }
+  else if (id === 'create-merchant-drawer') {
+    updateSubCategories('new-mch-main-category','new-mch-sub-category','new-mch-cat-scope');
+    toggleNewMerchantBranchFields();
+  }
+   else if (id === 'edit-merchant-drawer') {
+    document.getElementById('edit-mch-name').value = currentMerchant.name;
+    document.getElementById('edit-mch-email').value = currentMerchant.email;
+    document.getElementById('edit-mch-region').value = currentMerchant.address || '';
+    document.getElementById('edit-mch-phone').value = currentMerchant.phone || '';
+    document.getElementById('edit-mch-rep').value = currentMerchant.salesRep || '';
+    document.getElementById('edit-mch-source').value = currentMerchant.leadSource || '';
+    document.getElementById('edit-mch-branch-type').value = currentMerchant.branchType || 'Single';
+    document.getElementById('edit-mch-branches').value = currentMerchant.branches || 1;
+    
+    const mainCat = currentMerchant.mainCategory || getMainCategoryBySub(currentMerchant.subCategory);
+    document.getElementById('edit-mch-main-category').value = mainCat;
+    updateSubCategories('edit-mch-main-category','edit-mch-sub-category','edit-mch-cat-scope');
+    
+    const subSelect = document.getElementById('edit-mch-sub-category');
+    for (let i = 0; i < subSelect.options.length; i++) {
+      if (subSelect.options[i].value === currentMerchant.subCategory) { 
+        subSelect.selectedIndex = i; 
+        break; 
+      }
+    }
+  }
+}
+
+/* ═══ DISCUSSION POINTS ENGINE (v2 — segmented sentiment) ═══════ */
+
+const modalSentiments = { contact: 'Positive', fu: 'Positive', mtg: 'Positive' };
+
+function setModalSentiment(prefix, value) {
+  modalSentiments[prefix] = value;
+  const row = document.getElementById(prefix + '-dp-sentiment');
+  if (row) row.querySelectorAll('.dp-sent-opt').forEach(b =>
+    b.classList.toggle('active', b.dataset.v === value));
+}
+
+function addModalPoint(prefix) {
+  const input = document.getElementById(prefix + '-dp-input');
+  if (!input) return;
+  if (!input.value.trim()) {
+    input.classList.remove('nx-shake'); void input.offsetWidth;
+    input.classList.add('nx-shake'); input.focus();
+    return;
+  }
+  modalDiscussionPoints.push({ text: input.value.trim(), sentiment: modalSentiments[prefix] || 'Positive' });
+  input.value = '';
+  input.focus();
+  renderModalPoints(document.getElementById(prefix + '-dp-list'));
+  document.querySelectorAll('.dp-count').forEach(c => c.innerText = modalDiscussionPoints.length);
+  const newest = document.querySelector('#' + prefix + '-dp-list .dp-chip:last-of-type');
+  if (newest) newest.classList.add('dp-new');
+}
+
+function renderModalPoints(container) {
+  if (!container) return;
+  if (!modalDiscussionPoints.length) {
+    container.innerHTML = '<div class="dp-empty">No points yet — capture what the merchant said</div>';
+    return;
+  }
+  const rail  = { Positive:'dp-pos', Neutral:'dp-neu', Negative:'dp-neg' };
+  const cls   = { Positive:'pos',    Neutral:'neu',    Negative:'neg' };
+  const glyph = { Positive:'+ Pos',  Neutral:'Neu',    Negative:'− Neg' };
+  container.innerHTML = modalDiscussionPoints.map((p, i) => `
+    <div class="dp-chip ${rail[p.sentiment] || 'dp-neu'}">
+      <span class="dp-text">${escapeHtml_(p.text)}</span>
+      <span class="dp-sent ${cls[p.sentiment] || 'neu'}">${glyph[p.sentiment] || p.sentiment}</span>
+      <button type="button" class="dp-del" onclick="removeModalPoint(${i}, this)" title="Remove point">✕</button>
+    </div>
+  `).join('');
+}
+
+function removeModalPoint(idx, el) {
+  const chip = el && el.closest ? el.closest('.dp-chip') : null;
+  if (chip) chip.classList.add('dp-out');
+  setTimeout(() => {
+    modalDiscussionPoints.splice(idx, 1);
+    document.querySelectorAll('.modal-dp-list-container').forEach(c => renderModalPoints(c));
+    document.querySelectorAll('.dp-count').forEach(c => c.innerText = modalDiscussionPoints.length);
+  }, 150);
+}
+
+function getModalPointsList() {
+  return (modalDiscussionPoints || []).map(p => ({
+    sentiment: p.sentiment,
+    point: p.text,
+    text: p.text
+  }));
+}
+
+/* ═══ TOGGLE HELPERS ════════════════════════════════════════════ */
+
+function toggleContactFollowUpFields() {
+  const v = document.getElementById('contact-create-follow-up').value;
+  const f = document.getElementById('contact-follow-up-fields');
+  if (f) f.style.display = v === 'YES' ? 'flex' : 'none';
+}
+
+function toggleMeetingFollowUpFields() {
+  const v = document.getElementById('meeting-create-follow-up').value;
+  const f = document.getElementById('meeting-follow-up-fields');
+  if (f) f.style.display = v === 'YES' ? 'flex' : 'none';
+}
+
+function toggleFollowUpCreateAnotherFields() {
+  const v = document.getElementById('follow-up-create-another').value;
+  const f = document.getElementById('follow-up-another-fields');
+  if (f) f.style.display = v === 'YES' ? 'flex' : 'none';
+}
+
+function toggleMerchantExpand() {
+  merchantExpanded = !merchantExpanded;
+  const content = document.getElementById('mch-expand-content');
+  const chevron = document.getElementById('mch-expand-chevron');
+  if (content) content.classList.toggle('open', merchantExpanded);
+  if (chevron) chevron.classList.toggle('rotated', merchantExpanded);
+}
+
+function toggleWorkflowExpand() {
+  workflowExpanded = !workflowExpanded;
+  const extra = document.getElementById('workflow-extra');
+  const label = document.getElementById('workflow-toggle-label');
+  const chevron = document.getElementById('workflow-chevron');
+  if (extra) extra.classList.toggle('hidden', !workflowExpanded);
+  if (label) label.innerText = workflowExpanded ? 'Collapse' : 'Expand';
+  if (chevron) chevron.classList.toggle('rotated', workflowExpanded);
+}
+
+function setFeedbackSentiment(s) {
+  selectedFeedbackSentiment = s;
+  ['Positive','Neutral','Negative'].forEach(opt => {
+    const btn = document.getElementById('sentiment-btn-' + opt);
+    if (!btn) return;
+    if (opt === s) {
+      const colors = opt === 'Positive'
+        ? 'bg-gold/10 text-gold border-gold/25'
+        : opt === 'Negative'
+          ? 'bg-white/[0.04] text-muted border-white/[0.08]'
+          : 'bg-white/[0.04] text-offwhite border-white/[0.08]';
+      btn.className = `px-2.5 py-1.5 rounded-lg text-[9.5px] font-black border transition-all ${colors}`;
+    } else {
+      btn.className = 'px-2.5 py-1.5 rounded-lg text-[9.5px] font-black border transition-all bg-white/[0.04] text-muted border-white/[0.08]';
+    }
+  });
+}
+
+/* ═══ SEARCH ════════════════════════════════════════════════════ */
+
+function expandMerchantSearch() {
+  document.getElementById('mch-selector-collapsed').classList.add('hidden');
+  document.getElementById('mch-selector-expanded').classList.remove('hidden');
+  document.getElementById('mch-search-input').focus();
+  if (isGAS()) {
+    google.script.run
+      .withSuccessHandler(function(list) { allMerchants = list || []; renderSearchResults(allMerchants); })
+      .withFailureHandler(function(err) { showToast("Search Load Error: " + err); })
+      .getAllMerchantsForPanel();
+  } else {
+    renderSearchResults(allMerchants);
+  }
+}
+
+function collapseMerchantSearch() {
+  document.getElementById('mch-selector-collapsed').classList.remove('hidden');
+  document.getElementById('mch-selector-expanded').classList.add('hidden');
+}
+
+function renderSearchResults(list) {
+  const container = document.getElementById('mch-search-results');
+  if (!container) return;
+  if (!list || list.length === 0) {
+    container.innerHTML = '<div class="p-4 text-center text-[10.5px] text-muted/40 italic">No merchants found</div>';
+    return;
+  }
+  let html = '';
+  list.forEach(m => {
+    const branchLabel = m.branchType === 'Multi Branch' ? `Multi (${m.branches || 1})` : 'Single';
+    html += `
+      <div class="p-2.5 rounded-xl cursor-pointer flex items-center justify-between gap-2 bg-white/[0.02] border border-white/[0.04] hover:border-gold/20 transition-all"
+           onclick="selectMerchantById('${m.id}')">
+        <div class="flex flex-col min-w-0">
+          <span class="text-[11.5px] font-black text-white truncate">${m.name || m.businessName}</span>
+          <div class="flex items-center gap-1.5 text-[8.5px] text-muted/50 font-mono mt-0.5">
+            <span class="text-muted/30">${m.id}</span>
+            <span class="text-muted/15">•</span>
+            <span class="text-gold/80 font-black">${branchLabel}</span>
+          </div>
+        </div>
+        <div class="flex flex-col items-end shrink-0 gap-1">
+          <span class="text-[7.5px] px-2 py-0.5 bg-gold/10 text-gold border border-gold/20 rounded-md font-black uppercase">
+            ${m.pipeline || m.status || 'Lead'}
+          </span>
+          <span class="text-[7.5px] text-muted/40">${m.mainCategory || m.vertical || 'Delivery'}</span>
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function filterMerchantSearchResults() {
+  const query = (document.getElementById('mch-search-input').value || '').toLowerCase();
+  if (!query) { renderSearchResults(allMerchants); return; }
+  const filtered = allMerchants.filter(m =>
+    String(m.name || m.businessName || '').toLowerCase().includes(query) ||
+    String(m.id || '').toLowerCase().includes(query) ||
+    String(m.mainCategory || m.vertical || '').toLowerCase().includes(query) ||
+    String(m.subCategory || '').toLowerCase().includes(query) ||
+    String(m.phone || '').toLowerCase().includes(query) ||
+    String(m.salesRep || '').toLowerCase().includes(query)
+  );
+  renderSearchResults(filtered);
+}
+
+function selectMerchantById(merchantId) {
+  showToast("Loading...");
+  collapseMerchantSearch();
+  if (isGAS()) {
+    google.script.run
+      .withSuccessHandler(function(profile) {
+        if (profile) { applyProfile(profile); updateUI(); showToast("Loaded: " + currentMerchant.name); }
+        else { showToast("Merchant not found"); }
+      })
+      .withFailureHandler(function(err) { showToast("Error: " + err); })
+      .getMerchantProfileForPanel(merchantId);
+  } else {
+    const found = allMerchants.find(m => String(m.id) === String(merchantId));
+    if (found) Object.assign(currentMerchant, found);
+    updateUI();
+    showToast("Loaded: " + currentMerchant.name);
+  }
+}
+
+/* ═══ PROFILE ═══════════════════════════════════════════════════ */
+
+function applyProfile(profile) {
+  const m = profile.merchant || profile;
+  if (m) {
+    currentMerchant.id = m.id || currentMerchant.id;
+    currentMerchant.name = m.businessName || m.name || currentMerchant.name;
+    currentMerchant.mainCategory = m.mainCategory || m.vertical || currentMerchant.mainCategory;
+    currentMerchant.subCategory = m.subCategory || currentMerchant.subCategory;
+    currentMerchant.contactPerson = m.contactPerson || '';
+    currentMerchant.position = m.position || '';
+    currentMerchant.phone = m.phone || '';
+    currentMerchant.altPhone = m.altPhone || '';
+    currentMerchant.whatsapp = m.whatsapp || '';
+    currentMerchant.email = m.email || '';
+    currentMerchant.website = m.website || '';
+    currentMerchant.address = m.address || m.region || '';
+    currentMerchant.branchType = m.branchType || 'Single';
+    currentMerchant.branches = m.branches || 1;
+    currentMerchant.salesRep = m.salesRep || '';
+    currentMerchant.leadSource = m.leadSource || m.source || '';
+    currentMerchant.priority = m.priority || 'Medium';
+    currentMerchant.pipeline = m.pipeline || m.status || 'Lead';
+    currentMerchant.decisionMaker = m.decisionMaker || '';
+    currentMerchant.decision = m.decision || '';
+    currentMerchant.nextFollowUp = m.nextFollowUp || m.nextAction || '';
+    currentMerchant.notes = m.notes || '';
+    currentMerchant.row = m.row || 2;
+    currentMerchant.createdAt = m.createdAt || '';
+    currentMerchant.updatedAt = m.updatedAt || '';
+  }
+  currentMerchant.activities = profile.activities || [];
+  currentMerchant.meetings = profile.meetings || [];
+  currentMerchant.followUps = profile.followUps || [];
+  currentMerchant.discussionPoints = profile.feedback || profile.discussionPoints || [];
+}
+
+function updateSubCategories(mainId, subId, scopeId) {
+  const mainSelect = document.getElementById(mainId);
+  const subSelect = document.getElementById(subId);
+  const scopeEl = document.getElementById(scopeId);
+  if (!mainSelect || !subSelect) return;
+  const category = mainSelect.value;
+  const subs = SUBCATEGORIES[category] || [];
+  subSelect.innerHTML = '';
+  subs.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s; opt.text = s;
+    subSelect.appendChild(opt);
+  });
+  if (scopeEl) scopeEl.innerText = CATEGORY_DESCRIPTIONS[category] || 'N/A';
+}
+
+function getMainCategoryBySub(subCategory) {
+  for (const [cat, subs] of Object.entries(SUBCATEGORIES)) {
+    if (subs.includes(subCategory)) return cat;
+  }
+  return 'Delivery';
+}
+
+/* ═══ RECOMMENDED ACTION ════════════════════════════════════════ */
+
+function getRecommendedAction(m) {
+  const stage = String(m.pipeline || 'Lead').toLowerCase();
+  const todayStr = getFormattedDateToday();
+  if (stage.includes('lead')) return { title: 'Initial Contact Outreach', reason: 'Call or WhatsApp to identify decision maker and introduce NEXG', date: todayStr, time: 'Now' };
+  if (stage.includes('contact')) return { title: 'Schedule Follow Up', reason: 'Follow up to gauge interest level', date: todayStr, time: 'Today' };
+  if (stage.includes('follow')) return { title: 'Book a Meeting', reason: 'Convert follow-up into a meeting', date: todayStr, time: 'This Week' };
+  if (stage.includes('meeting')) return { title: 'Prepare Demo', reason: 'Schedule and prepare a product demonstration', date: todayStr, time: 'This Week' };
+  if (stage.includes('demo')) return { title: 'Send Proposal', reason: 'Send commercial proposal based on demo feedback', date: todayStr, time: '48h' };
+  if (stage.includes('proposal')) return { title: 'Begin Negotiation', reason: 'Discuss pricing and terms', date: todayStr, time: 'This Week' };
+  if (stage.includes('negot')) return { title: 'Issue Contract', reason: 'Prepare and send contract for signature', date: todayStr, time: 'ASAP' };
+  if (stage.includes('contract')) return { title: 'Start Onboarding', reason: 'Begin onboarding and system config', date: todayStr, time: 'Now' };
+  if (stage.includes('onboard')) return { title: 'Go Live!', reason: 'Complete checklist and activate merchant', date: todayStr, time: 'Target' };
+  if (stage.includes('live') || stage.includes('won')) return { title: 'Account Management', reason: 'Monitor performance and satisfaction', date: todayStr, time: 'Ongoing' };
+  if (stage.includes('lost')) return { title: 'Re-evaluate Lead', reason: 'Consider re-engagement or close file', date: todayStr, time: 'When Ready' };
+  return { title: 'Take Action', reason: 'Review status and determine next step', date: todayStr, time: 'Now' };
+}
+
+function executeRecommendedAction() {
+  const stage = String(currentMerchant.pipeline || 'Lead').toLowerCase();
+  if (stage.includes('lead')) openModal('contact-modal');
+  else if (stage.includes('contact')) openModal('follow-up-modal');
+  else if (stage.includes('follow')) openModal('meeting-modal');
+  else if (stage.includes('meeting')) openModal('demo-modal');
+  else if (stage.includes('demo')) openModal('proposal-modal');
+  else if (stage.includes('proposal')) openModal('negotiation-modal');
+  else if (stage.includes('negot')) openModal('contract-modal');
+  else if (stage.includes('contract')) openModal('onboarding-modal');
+  else if (stage.includes('onboard')) openModal('live-modal');
+  else openModal('contact-modal');
+}
+
+function mapStageToIndex(stage) {
+  if (!stage) return 0;
+  const s = String(stage).toLowerCase();
+  if (s.includes('lead')) return 0;
+  if (s.includes('contact')) return 1;
+  if (s.includes('follow')) return 2;
+  if (s.includes('meeting')) return 3;
+  if (s.includes('demo')) return 4;
+  if (s.includes('proposal')) return 5;
+  if (s.includes('negot')) return 6;
+  if (s.includes('contract')) return 7;
+  if (s.includes('onboard')) return 8;
+  if (s.includes('live') || s.includes('won') || s.includes('active')) return 9;
+  if (s.includes('lost')) return -1;
+  return 0;
+}
+
+/* ═══ UNIFIED UI RENDERER ═══════════════════════════════════════ */
+
+function updateUI() {
+  setTxt('mch-display-name', currentMerchant.name);
+  setTxt('mch-display-id', currentMerchant.id);
+  setTxt('mch-tag-vertical', currentMerchant.mainCategory + ' › ' + currentMerchant.subCategory);
+  setTxt('mch-collapsed-name', currentMerchant.name);
+  setTxt('mch-collapsed-stage-badge', currentMerchant.pipeline);
+  setTxt('mch-detail-email', currentMerchant.email || 'N/A');
+  setTxt('mch-detail-contact-person', currentMerchant.contactPerson || 'N/A');
+  setTxt('mch-detail-position', currentMerchant.position || 'N/A');
+  setTxt('mch-detail-rep', currentMerchant.salesRep || 'Unassigned');
+  setTxt('mch-detail-phone', currentMerchant.phone || 'N/A');
+  setTxt('mch-detail-region', currentMerchant.address || 'N/A');
+  setTxt('mch-detail-row', 'Row ' + currentMerchant.row);
+  setTxt('mch-detail-next-followup', currentMerchant.nextFollowUp || 'None scheduled');
+  setTxt('mch-tag-rep', currentMerchant.salesRep || 'Unassigned');
+
+  const branchText = currentMerchant.branchType === 'Multi Branch'
+    ? `Multi (${currentMerchant.branches || 1})` : 'Single Branch';
+  setTxt('mch-tag-branch-type', branchText);
+
+  const statusBadge = document.getElementById('mch-display-badge');
+  if (statusBadge) {
+    const isWon = String(currentMerchant.pipeline).toLowerCase().includes('won') ||
+                  String(currentMerchant.pipeline).toLowerCase().includes('live') ||
+                  String(currentMerchant.pipeline).toLowerCase().includes('active');
+    statusBadge.innerText = isWon ? 'LIVE' : 'ACTIVE';
+    statusBadge.className = isWon ? "shrink-0 tag tag-gold" : "shrink-0 tag tag-white";
+  }
+
+  const actionDef = getRecommendedAction(currentMerchant);
+  setTxt('rec-action-title', actionDef.title);
+  setTxt('rec-action-reason', actionDef.reason);
+  setTxt('rec-action-date', 'Target: ' + actionDef.date);
+  setTxt('rec-action-time', actionDef.time);
+
+  renderMiniPipeline();
+  renderTimelinePipeline();
+  renderStageTimestamps();
+  renderRecentActivityPreview();
+  renderStatistics();
+  renderActivitiesTimeline();
+  renderFeedbackPoints();
+
+  const feedbackBadge = document.getElementById('feedback-badge-count');
+  if (feedbackBadge && currentMerchant.discussionPoints.length > 0) {
+    feedbackBadge.innerText = currentMerchant.discussionPoints.length;
+    feedbackBadge.classList.remove('hidden');
+  } else if (feedbackBadge) {
+    feedbackBadge.classList.add('hidden');
+  }
+}
+
+function renderMiniPipeline() {
+  const container = document.getElementById('mini-pipeline-track');
+  const labelEl = document.getElementById('pipe-current-label');
+  if (!container) return;
+  const currentIndex = mapStageToIndex(currentMerchant.pipeline);
+  const lastIndex = PIPELINE_STAGES.length - 1;
+  if (labelEl) {
+    labelEl.innerText = currentIndex >= 0 ? (PIPELINE_STAGES[currentIndex]?.label || 'Lead') : 'Lost';
+  }
+  let html = '';
+  PIPELINE_STAGES.forEach((stage, idx) => {
+    const isCurrent = idx === currentIndex;
+    const isPassed = idx < currentIndex;
+    let dotClass = 'pipe-dot';
+    if (isCurrent) dotClass += ' current';
+    else if (isPassed) dotClass += ' done';
+    const showLabel = idx === 0 || isCurrent || idx === lastIndex;
+    const labelColor = isCurrent ? 'color:#d4af37;' : '';
+    html += `
+      <div class="pipe-step" title="${stage.key}: ${stage.desc}">
+        <div class="${dotClass}"></div>
+        <span class="pipe-label" style="${labelColor} ${showLabel ? '' : 'opacity:0;'}">${stage.label}</span>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function renderTimelinePipeline() {
+  const container = document.getElementById('timeline-pipeline-track');
+  if (!container) return;
+  const currentIndex = mapStageToIndex(currentMerchant.pipeline);
+  const lastIndex = PIPELINE_STAGES.length - 1;
+  let html = '<div class="flex flex-col">';
+  PIPELINE_STAGES.forEach((stage, idx) => {
+    const isCurrent = idx === currentIndex;
+    const isPassed = idx < currentIndex;
+    let dotClass = 'pipe-dot';
+    if (isCurrent) dotClass += ' current';
+    else if (isPassed) dotClass += ' done';
+    const labelClass = isCurrent ? 'text-gold' : isPassed ? 'text-offwhite' : 'text-faint';
+    const badge = isCurrent ? '<span class="tag tag-gold shrink-0">Current</span>'
+      : isPassed ? '<span class="tag tag-white shrink-0">Done</span>' : '';
+    html += `
+      <div class="flex gap-3">
+        <div class="flex flex-col items-center">
+          <div class="${dotClass} mt-0.5"></div>
+          ${idx < lastIndex ? '<div class="w-px flex-1 bg-white/[0.08] my-1"></div>' : ''}
+        </div>
+        <div class="${idx < lastIndex ? 'pb-3' : ''} flex-1 min-w-0">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[10px] font-black uppercase tracking-wide ${labelClass}">${idx + 1}. ${stage.label}</span>
+            ${badge}
+          </div>
+          <p class="text-[9.5px] text-muted/60 leading-snug mt-0.5">${stage.desc}</p>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function showTimelineStageDetail(idx) {
+  const panel = document.getElementById('timeline-pipeline-detail');
+  if (!panel) return;
+  if (timelineStageDetailIdx === idx) { panel.classList.add('hidden'); timelineStageDetailIdx = -1; return; }
+  timelineStageDetailIdx = idx;
+  const stage = PIPELINE_STAGES[idx];
+  const isCurrent = idx === mapStageToIndex(currentMerchant.pipeline);
+  panel.innerHTML = `
+    <div class="flex items-start gap-2">
+      <span class="text-[9.5px] font-black uppercase tracking-wider ${isCurrent ? 'text-gold' : 'text-muted'} mt-0.5 shrink-0">${stage.label}</span>
+      <span class="text-[10px] text-muted/70 leading-relaxed">${stage.desc}</span>
+    </div>
+  `;
+  panel.classList.remove('hidden');
+}
+
+function renderStageTimestamps() {
+  const setTs = (id, value) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (value && value !== '—') { el.innerText = value; el.classList.add('has-date'); }
+    else { el.innerText = '—'; el.classList.remove('has-date'); }
+  };
+  setTs('ts-created', currentMerchant.createdAt || '—');
+  setTs('ts-updated', currentMerchant.updatedAt || '—');
+  let contacted = '—', followedUp = '—', met = '—', demoed = '—';
+  (currentMerchant.activities || []).forEach(a => {
+    const action = String(a.action || a.type || '').toLowerCase();
+    const ts = a.timestamp || (a.date + ' ' + (a.time || ''));
+    if (action.includes('contact') && contacted === '—') contacted = ts;
+    if (action.includes('follow') && followedUp === '—') followedUp = ts;
+    if (action.includes('demo') && demoed === '—') demoed = ts;
+  });
+  (currentMerchant.meetings || []).forEach(m => {
+    if (met === '—') met = m.date + ' ' + (m.time || '');
+  });
+  setTs('ts-contacted', contacted);
+  setTs('ts-followup', followedUp);
+  setTs('ts-meeting', met);
+  setTs('ts-demo', demoed);
+}
+
+function renderRecentActivityPreview() {
+  const container = document.getElementById('recent-activity-preview');
+  if (!container) return;
+  let items = [];
+  (currentMerchant.activities || []).forEach(a => {
+    items.push({ title: a.action || a.type || 'Activity', time: a.timestamp || (a.date + ' ' + (a.time || '')), kind: 'activity' });
+  });
+  (currentMerchant.meetings || []).forEach(m => {
+    items.push({ title: m.type || m.meetingType || 'Meeting', time: m.date + ' ' + (m.time || ''), kind: 'meeting' });
+  });
+  (currentMerchant.followUps || []).forEach(f => {
+    items.push({ title: 'Follow Up — ' + (f.status || 'Pending'), time: f.date || '', kind: 'followup' });
+  });
+  items.sort((a, b) => (b.time || '').localeCompare(a.time || ''));
+  const recent = items.slice(0, 3);
+  if (recent.length === 0) {
+    container.innerHTML = '<div class="p-3 text-center text-[10.5px] text-muted/30 italic">No activity yet</div>';
+    return;
+  }
+  container.innerHTML = recent.map(item => {
+    const dotColor = item.kind === 'meeting' ? 'bg-white' : item.kind === 'followup' ? 'bg-ghost' : 'bg-gold';
+    const targetFilter = item.kind === 'activity' ? 'activities' : item.kind === 'meeting' ? 'meetings' : 'followups';
+    return `
+      <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] cursor-pointer hover:border-gold/20 transition-all"
+           onclick="goToTimeline('${targetFilter}')">
+        <span class="w-1.5 h-1.5 rounded-full ${dotColor} shrink-0"></span>
+        <span class="text-[10.5px] font-bold text-offwhite truncate flex-1">${item.title}</span>
+        <span class="text-[8.5px] text-faint font-mono shrink-0">${item.time}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderStatistics() {
+  const totalInteractions = currentMerchant.activities.length + currentMerchant.meetings.length;
+  setTxt('stat-total-interactions', totalInteractions);
+  setTxt('stat-total-meetings', currentMerchant.meetings.length);
+  setTxt('stat-pending-followups', currentMerchant.followUps.filter(f => f.status === 'Pending').length);
+  setTxt('stat-total-feedback', currentMerchant.discussionPoints.length);
+}
+
+function renderActivitiesTimeline() {
+  const container = document.getElementById('activities-timeline-container');
+  if (!container) return;
+  let items = [];
+  currentMerchant.activities.forEach(a => {
+    items.push({
+      id: a.id, kind: 'activity', timestamp: a.timestamp || (a.date + ' ' + (a.time || '')),
+      title: a.action || a.type, notes: a.summary || a.notes, rep: a.salesRep || a.rep,
+      outcome: a.pipelineAfter || a.outcome, contactPerson: a.contactPerson, createdAt: a.timestamp || a.date
+    });
+  });
+  currentMerchant.meetings.forEach(m => {
+    items.push({
+      id: m.id, kind: 'meeting', timestamp: m.date + " " + (m.time || ''),
+      title: m.type || m.meetingType, notes: m.notes || m.purpose, contactPerson: m.contactPerson,
+      outcome: m.result || m.outcome, createdAt: m.date + ' ' + (m.time || '')
+    });
+  });
+  currentMerchant.followUps.forEach(f => {
+    items.push({
+      id: f.id, kind: 'followup', timestamp: f.date, title: 'Follow Up',
+      notes: f.reason || f.notes, rep: currentMerchant.salesRep, outcome: f.status,
+      nextAction: f.nextAction, createdAt: f.date
+    });
+  });
+  items.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+  if (streamFilter === 'activities') items = items.filter(i => i.kind === 'activity');
+  else if (streamFilter === 'meetings') items = items.filter(i => i.kind === 'meeting');
+  else if (streamFilter === 'followups') items = items.filter(i => i.kind === 'followup');
+  setTxt('stream-count-badge', items.length + " records");
+  if (items.length === 0) {
+    container.innerHTML = '<div class="p-4 text-center text-[10.5px] text-muted/30 italic bg-white/[0.02] rounded-xl border border-white/[0.04]">No activity history yet</div>';
+    return;
+  }
+  let html = "";
+  items.forEach((item, idx) => {
+    const isMtg = item.kind === 'meeting';
+    const isFU = item.kind === 'followup';
+    let badgeColor = 'bg-gold/10 text-gold border-gold/20';
+    let dotClass = '';
+    if (isMtg) { badgeColor = 'bg-white/[0.06] text-offwhite border-white/10'; dotClass = 'meeting'; }
+    else if (isFU) { badgeColor = 'bg-white/[0.03] text-muted border-white/[0.06]'; dotClass = 'followup'; }
+    let metaChips = '';
+    if (item.createdAt) metaChips += `<span class="text-[8px] font-mono text-muted/35">${item.createdAt}</span>`;
+    if (item.outcome) metaChips += `<span class="px-2 py-0.5 bg-gold/10 text-gold border border-gold/15 rounded-md text-[7.5px] font-black uppercase">${item.outcome}</span>`;
+    html += `
+      <div class="tl-item ${dotClass} anim-up" style="animation-delay:${idx * 0.035}s">
+        <div class="flex items-center justify-between gap-2 mb-1.5">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="font-black text-white text-[11.5px] truncate">${item.title || 'Activity'}</span>
+            <span class="px-2 py-0.5 rounded-md text-[7px] font-black uppercase border ${badgeColor} shrink-0">${item.kind}</span>
+          </div>
+          <span class="text-[8.5px] font-mono text-muted/40 shrink-0">${item.timestamp || ''}</span>
+        </div>
+        <div class="id-badge mb-1.5">${item.id}</div>
+        ${item.contactPerson ? '<div class="text-[9.5px] text-muted/55 mb-1.5">With <strong class="text-offwhite/85">' + item.contactPerson + '</strong></div>' : ''}
+        ${item.notes ? '<p class="text-muted/65 text-[10.5px] leading-relaxed bg-white/[0.02] p-2.5 rounded-xl border border-white/[0.04] mb-2">' + item.notes + '</p>' : ''}
+        <div class="flex items-center gap-2 flex-wrap">${metaChips}</div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function renderFeedbackPoints() {
+  const points = currentMerchant.discussionPoints;
+  const posList = document.getElementById('compiled-positive-list');
+  const negList = document.getElementById('compiled-negative-list');
+  const rawContainer = document.getElementById('feedback-raw-stream-container');
+  setTxt('feedback-count-badge', points.length + " Points");
+  const positivePoints = points.filter(p => p.sentiment === 'Positive' || p.type === 'Positive');
+  const negativePoints = points.filter(p => p.sentiment === 'Negative' || p.type === 'Negative');
+  setTxt('compiled-positive-count', positivePoints.length);
+  setTxt('compiled-negative-count', negativePoints.length);
+  if (positivePoints.length === 0) {
+    posList.innerHTML = '<span class="text-[9.5px] text-muted/25 italic">No positive points</span>';
+  } else {
+    posList.innerHTML = positivePoints.map(p =>
+      '<div class="text-[10.5px] text-offwhite/85 flex items-start gap-1.5 leading-snug"><span class="text-gold mt-1 text-[6px]">●</span><span>' + (p.text || p.point || '') + '</span></div>'
+    ).join('');
+  }
+  if (negativePoints.length === 0) {
+    negList.innerHTML = '<span class="text-[9.5px] text-muted/25 italic">No objections</span>';
+  } else {
+    negList.innerHTML = negativePoints.map(p =>
+      '<div class="text-[10.5px] text-offwhite/85 flex items-start gap-1.5 leading-snug"><span class="text-muted mt-1 text-[6px]">●</span><span>' + (p.text || p.point || '') + '</span></div>'
+    ).join('');
+  }
+  if (points.length === 0) {
+    rawContainer.innerHTML = '<div class="p-4 text-center text-[10.5px] text-muted/25 italic">No feedback recorded</div>';
+    return;
+  }
+  let r_html = "";
+  points.forEach((p, idx) => {
+    const sent = p.sentiment || p.type || 'Neutral';
+    let badgeStyle = "bg-white/[0.04] text-offwhite border-white/[0.08]";
+    let railClass = "dp-rail-neu";
+    if (sent === 'Positive') { badgeStyle = "bg-gold/10 text-gold border-gold/20"; railClass = "dp-rail-pos"; }
+    if (sent === 'Negative') { badgeStyle = "bg-danger/10 text-danger border-danger/20"; railClass = "dp-rail-neg"; }
+    r_html += `
+      <div class="dp-stream-card ${railClass} p-3 bg-white/[0.02] border border-white/[0.04] rounded-xl flex flex-col gap-1.5" style="animation-delay:${idx * 0.04}s">
+        <div class="flex items-center justify-between gap-2">
+          <span class="px-2 py-0.5 rounded-md text-[8px] font-black border ${badgeStyle}">${sent}</span>
+          <span class="text-[8.5px] font-mono text-muted/35">${p.timestamp || p.date || ''}</span>
+        </div>
+        <p class="text-offwhite/85 font-bold leading-relaxed text-[10.5px]">${p.text || p.point || ''}</p>
+      </div>
+    `;
+  });
+  rawContainer.innerHTML = r_html;
+}
+
+/* ═══ SUBMISSIONS ═══════════════════════════════════════════════ */
+
+function submitDirectFeedback() {
+  const input = document.getElementById('feedback-text-input');
+  const text = input.value.trim();
+  if (!text) { showToast("Enter feedback first."); return; }
+  const newPoint = {
+    id: 'DP-' + Date.now() + '-' + Math.floor(Math.random() * 900 + 100),
+    sentiment: selectedFeedbackSentiment, stage: currentMerchant.pipeline,
+    timestamp: getFormattedNow(), text: text, type: selectedFeedbackSentiment
+  };
+  currentMerchant.discussionPoints.unshift(newPoint);
+  input.value = "";
+  updateUI();
+  showToast("Feedback logged! ID: " + newPoint.id);
+  const newestRaw = document.querySelector('#feedback-raw-stream-container > div');
+  if (newestRaw) newestRaw.classList.add('dp-new');
+  input.focus();
+  if (isGAS()) {
+    google.script.run
+      .withFailureHandler(function(e){ showToast('Feedback save failed: ' + (e && e.message ? e.message : e)); })
+      .addFeedbackFromPanel({ merchantId: currentMerchant.id, feedbackType: selectedFeedbackSentiment, point: text });
+  }
+}
+
+function submitContactLog() {
+  function rd(id){ var e = document.getElementById(id); return e ? e.value : ''; }
+  var payload, actId;
+  try {
+    var method   = rd('contact-method-select');
+    var person   = rd('contact-person-input') || '';
+    var outcome  = rd('contact-outcome-select');
+    var notes    = rd('contact-notes-input') || '';
+    var createFU = rd('contact-create-follow-up') === 'YES';
+    var fuDate   = combineDateTime('contact-follow-up-date', 'contact-follow-up-time');
+    var fuReason = rd('contact-follow-up-reason') || '';
+    var fuAction = rd('contact-follow-up-action') || '';
+    var pts      = getModalPointsList();
+    var fuNotes  = fuReason + (fuAction ? (fuReason ? ' | Next action: ' : 'Next action: ') + fuAction : '');
+    var summary  = 'Method: ' + method + ' | Person: ' + (person || '—') +
+                   ' | Outcome: ' + outcome + ' | Notes: ' + (notes || '—');
+    actId = 'ACT-' + Date.now() + '-' + Math.floor(Math.random() * 900 + 100);
+    payload = {
+      merchantId: currentMerchant.id, contactMethod: method, contactPerson: person,
+      outcome: outcome, notes: notes, summary: summary,
+      createFollowUp: createFU,
+      followUpDate: createFU ? fuDate : '',
+      followUpNotes: createFU ? fuNotes : '',
+      discussionPoints: pts
+    };
+  } catch (err) {
+    showToast('Contact read error: ' + (err && err.message ? err.message : err));
+    return;
+  }
+  try {
+    currentMerchant.pipeline = 'Contact';
+    currentMerchant.activities.unshift({
+      id: actId, action: 'Contact', type: (payload.contactMethod || 'Contact') + ' Contact',
+      timestamp: getFormattedNow(), date: getFormattedDateToday(), time: getFormattedTimeNow(),
+      notes: payload.summary, summary: payload.summary, contactPerson: payload.contactPerson,
+      rep: currentMerchant.salesRep, salesRep: currentMerchant.salesRep,
+      outcome: payload.outcome, pipelineAfter: 'Contact'
+    });
+    if (payload.createFollowUp) {
+      currentMerchant.followUps.unshift({
+        id: 'FU-' + Date.now() + '-' + Math.floor(Math.random() * 900 + 100),
+        date: payload.followUpDate, reason: payload.followUpNotes,
+        nextAction: payload.followUpNotes, status: 'Pending'
+      });
+    }
+    if (payload.contactPerson) currentMerchant.contactPerson = payload.contactPerson;
+    updateUI();
+  } catch (e) {}
+  closeModal('contact-modal');
+  if (isGAS()) {
+    google.script.run
+      .withSuccessHandler(function(){
+        showToast('Contact saved! ID: ' + actId);
+        google.script.run
+          .withSuccessHandler(function(p){ if (p) { applyProfile(p); updateUI(); } })
+          .withFailureHandler(function(){})
+          .getMerchantProfileForPanel(currentMerchant.id);
+      })
+      .withFailureHandler(function(e){ showToast('Save failed: ' + (e && e.message ? e.message : e)); })
+      .logContactFromPanel(payload);
+  } else {
+    showToast('Contact logged! ID: ' + actId);
+  }
+}
+
+function submitFollowUpLog() {
+  const reason = document.getElementById('follow-up-reason-input').value || 'Follow up on contact';
+  const outcome = document.getElementById('follow-up-outcome-select').value;
+  const createAnother = document.getElementById('follow-up-create-another').value === 'YES';
+  const nextDate = combineDateTime('follow-up-next-date', 'follow-up-next-time');
+  const nextReason = document.getElementById('follow-up-next-reason').value || '';
+  const pointsList = getModalPointsList();
+  currentMerchant.pipeline = 'Follow Up';
+  const actId = 'ACT-' + Date.now() + '-' + Math.floor(Math.random() * 900 + 100);
+  currentMerchant.followUps.unshift({
+    id: 'FU-' + Date.now() + '-' + Math.floor(Math.random() * 900 + 100),
+    date: getFormattedNow(), reason: reason, nextAction: 'Confirm next steps', status: 'Completed'
+  });
+  currentMerchant.activities.unshift({
+    id: actId, action: 'Follow Up', type: 'Follow-up Executed',
+    timestamp: getFormattedNow(), date: getFormattedDateToday(), time: getFormattedTimeNow(),
+    notes: `Reason: ${reason}. Outcome: ${outcome}`,
+    summary: `Follow Up: ${reason} | Outcome: ${outcome}`,
+    rep: currentMerchant.salesRep, salesRep: currentMerchant.salesRep,
+    outcome: outcome, pipelineAfter: 'Follow Up'
+  });
+  if (createAnother) {
+    currentMerchant.followUps.unshift({
+      id: 'FU-' + (Date.now() + 1) + '-' + Math.floor(Math.random() * 900 + 100),
+      date: nextDate || 'Tomorrow', reason: nextReason || 'Follow up to confirm',
+      nextAction: 'Call / WhatsApp reminder', status: 'Pending'
+    });
+  }
+  updateUI();
+  closeModal('follow-up-modal');
+  if (isGAS()) {
+    google.script.run
+      .withSuccessHandler(() => { showToast('Follow up saved! ID: ' + actId); refreshActiveSheetRow(); })
+      .withFailureHandler(e => showToast('Save failed: ' + (e && e.message ? e.message : e)))
+      .logFollowUpFromPanel({
+        merchantId: currentMerchant.id, reason: reason, outcome: outcome,
+        createAnother: createAnother,
+        nextDate: createAnother ? nextDate : '',
+        nextNotes: createAnother ? nextReason : '',
+        discussionPoints: pointsList
+      });
+  } else {
+    showToast('Follow up saved! ID: ' + actId);
+  }
+}
+
+function submitMeetingLog() {
+  const type = document.getElementById('meeting-type-select').value;
+  const person = document.getElementById('meeting-contact-person').value || 'Representative';
+  const purpose = document.getElementById('meeting-purpose-input').value || '';
+  const outcome = document.getElementById('meeting-outcome-select').value;
+  const mDate = (document.getElementById('meeting-date-input') || {}).value || getFormattedDateToday();
+  const mTime = (document.getElementById('meeting-time-input') || {}).value || getFormattedTimeNow();
+  
+  // Safely reads the email toggle (works whether it's a checkbox or a select dropdown)
+  const emailEl = document.getElementById('meeting-send-email');
+  const sendEmail = emailEl ? (emailEl.type === 'checkbox' ? emailEl.checked : emailEl.value === 'YES') : false;
+
+  const createFU = document.getElementById('meeting-create-follow-up').value === 'YES';
+  const fuDate = combineDateTime('meeting-follow-up-date', 'meeting-follow-up-time');
+  const fuReason = document.getElementById('meeting-follow-up-reason').value || '';
+  const pointsList = getModalPointsList();
+  
+  currentMerchant.pipeline = 'Meeting';
+  const mtgId = 'MTG-' + Date.now() + '-' + Math.floor(Math.random() * 900 + 100);
+  
+  currentMerchant.meetings.unshift({
+    id: mtgId, date: mDate, time: mTime, type: type, meetingType: type, 
+    contactPerson: person, purpose: purpose, notes: purpose, outcome: outcome, result: outcome
+  });
+  
+  if (createFU) {
+    currentMerchant.followUps.unshift({
+      id: 'FU-' + Date.now() + '-' + Math.floor(Math.random() * 900 + 100),
+      date: fuDate || 'Tomorrow', reason: fuReason || 'Follow-up after meeting',
+      nextAction: 'Confirm next steps', status: 'Pending'
+    });
+  }
+  
+  updateUI();
+  closeModal('meeting-modal');
+  
+  if (isGAS()) {
+    google.script.run
+      .withSuccessHandler(() => { showToast('Meeting saved! ID: ' + mtgId + (sendEmail ? ' · email queued' : '')); refreshActiveSheetRow(); })
+      .withFailureHandler(e => showToast('Save failed: ' + (e && e.message ? e.message : e)))
+      .logMeetingFromPanel({
+        merchantId: currentMerchant.id, meetingType: type, contactPerson: person,
+        notes: purpose, result: outcome, meetingDate: mDate, meetingTime: mTime,
+        sendEmail: sendEmail, createFollowUp: createFU,
+        followUpDate: createFU ? fuDate : '', followUpNotes: createFU ? fuReason : '',
+        discussionPoints: pointsList
+      });
+  } else { showToast('Meeting saved! ID: ' + mtgId); }
+}
+
+function submitProposalLog() {
+  const date = document.getElementById('proposal-date-input').value;
+  const value = document.getElementById('proposal-value-input').value;
+  const response = document.getElementById('proposal-notes-input').value || '';
+  const outcome = document.getElementById('proposal-outcome-select').value;
+  const emailEl = document.getElementById('proposal-send-email');
+  const sendEmail = emailEl ? (emailEl.type === 'checkbox' ? emailEl.checked : emailEl.value === 'YES') : false;
+
+  currentMerchant.pipeline = 'Proposal';
+  const actId = 'ACT-' + Date.now() + '-' + Math.floor(Math.random() * 900 + 100);
+  const summary = `Date: ${date} | Value: KSH ${value} | Outcome: ${outcome} | Response: ${response}`;
+  
+  currentMerchant.activities.unshift({
+    id: actId, action: 'Proposal', type: 'Proposal Sent', timestamp: getFormattedNow(), 
+    date: getFormattedDateToday(), time: getFormattedTimeNow(), notes: summary, summary: summary, 
+    outcome: outcome, rep: currentMerchant.salesRep, salesRep: currentMerchant.salesRep, pipelineAfter: 'Proposal'
+  });
+  
+  updateUI(); closeModal('proposal-modal');
+  if (isGAS()) {
+    google.script.run
+      .withSuccessHandler(() => { showToast('Proposal saved! ID: ' + actId + (sendEmail ? ' · email queued' : '')); refreshActiveSheetRow(); })
+      .withFailureHandler(e => showToast('Save failed: ' + (e && e.message ? e.message : e)))
+      .logActivityFromPanel({ merchantId: currentMerchant.id, action: 'Proposal', summary: summary, sendEmail: sendEmail, proposalDate: date, proposalValue: value, proposalNotes: response });
+  } else { showToast('Proposal logged! ID: ' + actId); }
+}
+
+function submitContractLog() {
+  const contractId = document.getElementById('contract-id-input').value;
+  const sentDate = document.getElementById('contract-date-input').value;
+  const signed = document.getElementById('contract-is-signed').value === 'YES';
+  const terms = document.getElementById('contract-terms-input').value || 'Standard SLA.';
+  const emailEl = document.getElementById('contract-send-email');
+  const sendEmail = emailEl ? (emailEl.type === 'checkbox' ? emailEl.checked : emailEl.value === 'YES') : false;
+
+  currentMerchant.pipeline = 'Contract';
+  const actId = 'ACT-' + Date.now() + '-' + Math.floor(Math.random() * 900 + 100);
+  const summary = `Contract: ${contractId} | Sent: ${sentDate} | Signed: ${signed ? 'YES' : 'NO'} | Terms: ${terms}`;
+  
+  currentMerchant.activities.unshift({
+    id: actId, action: 'Contract', type: 'Contract Executed', timestamp: getFormattedNow(), 
+    date: getFormattedDateToday(), time: getFormattedTimeNow(), notes: summary, summary: summary, 
+    outcome: signed ? 'Signed' : 'Pending', rep: currentMerchant.salesRep, salesRep: currentMerchant.salesRep, pipelineAfter: 'Contract'
+  });
+  
+  updateUI(); closeModal('contract-modal');
+  if (isGAS()) {
+    google.script.run
+      .withSuccessHandler(() => { showToast('Contract saved! ID: ' + actId + (sendEmail ? ' · email queued' : '')); refreshActiveSheetRow(); })
+      .withFailureHandler(e => showToast('Save failed: ' + (e && e.message ? e.message : e)))
+      .logActivityFromPanel({ merchantId: currentMerchant.id, action: 'Contract', summary: summary, sendEmail: sendEmail, contractId: contractId, signed: signed, contractTerms: terms });
+  } else { showToast('Contract logged! ID: ' + actId); }
+}
+
+function submitOnboardingLog() {
+  const training = document.getElementById('onboarding-training').value;
+  const documents = document.getElementById('onboarding-documents').value;
+  const system = document.getElementById('onboarding-system').value;
+  const signage = document.getElementById('onboarding-ready').value;
+  const issues = document.getElementById('onboarding-issues-input').value || '';
+  const outcome = document.getElementById('onboarding-outcome-select').value;
+  const emailEl = document.getElementById('onboarding-send-email');
+  const sendEmail = emailEl ? (emailEl.type === 'checkbox' ? emailEl.checked : emailEl.value === 'YES') : false;
+
+  currentMerchant.pipeline = 'Onboarding';
+  const actId = 'ACT-' + Date.now() + '-' + Math.floor(Math.random() * 900 + 100);
+  const summary = `[Training:${training}, Docs:${documents}, System:${system}, Signage:${signage}] | Notes: ${issues} | Outcome: ${outcome}`;
+  
+  currentMerchant.activities.unshift({
+    id: actId, action: 'Onboarding', type: 'Onboarding Checklist', timestamp: getFormattedNow(), 
+    date: getFormattedDateToday(), time: getFormattedTimeNow(), notes: summary, summary: summary, 
+    outcome: outcome, rep: currentMerchant.salesRep, salesRep: currentMerchant.salesRep, pipelineAfter: 'Onboarding'
+  });
+  
+  updateUI(); closeModal('onboarding-modal');
+  if (isGAS()) {
+    google.script.run
+      .withSuccessHandler(() => { showToast('Onboarding saved! ID: ' + actId + (sendEmail ? ' · email queued' : '')); refreshActiveSheetRow(); })
+      .withFailureHandler(e => showToast('Save failed: ' + (e && e.message ? e.message : e)))
+      .logActivityFromPanel({ merchantId: currentMerchant.id, action: 'Onboarding', summary: summary, sendEmail: sendEmail, training: training, documents: documents, system: system, signage: signage });
+  } else { showToast('Onboarding logged! ID: ' + actId); }
+}
+
+function submitLiveLog() {
+  const date = document.getElementById('live-date-input').value || getFormattedDateToday();
+  const notes = document.getElementById('live-notes-input').value || 'Merchant is fully live.';
+  const emailEl = document.getElementById('live-send-email');
+  const sendEmail = emailEl ? (emailEl.type === 'checkbox' ? emailEl.checked : emailEl.value === 'YES') : false;
+
+  currentMerchant.pipeline = 'Live';
+  const actId = 'ACT-' + Date.now() + '-' + Math.floor(Math.random() * 900 + 100);
+  const summary = `Go Live: ${date} | Notes: ${notes}`;
+  
+  currentMerchant.activities.unshift({
+    id: actId, action: 'Live', type: 'Go Live Activated', timestamp: getFormattedNow(), 
+    date: getFormattedDateToday(), time: getFormattedTimeNow(), notes: summary, summary: summary, 
+    outcome: 'Won / Active', rep: currentMerchant.salesRep, salesRep: currentMerchant.salesRep, pipelineAfter: 'Live'
+  });
+  
+  updateUI(); 
+  closeModal('live-modal');
+  
+  if (isGAS()) {
+    google.script.run
+      .withSuccessHandler(() => { showToast('Merchant is LIVE! ID: ' + actId + (sendEmail ? ' · email queued' : '')); refreshActiveSheetRow(); })
+      .withFailureHandler(e => showToast('Save failed: ' + (e && e.message ? e.message : e)))
+      .logActivityFromPanel({ merchantId: currentMerchant.id, action: 'Live', summary: summary, sendEmail: sendEmail, liveDate: date, liveNotes: notes });
+  } else { 
+    showToast('Live logged! ID: ' + actId); 
+  }
+}
+
+function submitLostLog() {
+  const reason = document.getElementById('lost-reason-select').value;
+  const details = document.getElementById('lost-details-input').value || 'Lead abandoned.';
+  currentMerchant.pipeline = 'Lost';
+  const actId = 'ACT-' + Date.now() + '-' + Math.floor(Math.random() * 900 + 100);
+  const summary = `Reason: ${reason} | Details: ${details}`;
+  currentMerchant.activities.unshift({
+    id: actId, action: 'Lost', type: 'Lead Lost',
+    timestamp: getFormattedNow(), date: getFormattedDateToday(), time: getFormattedTimeNow(),
+    notes: summary, summary: summary, outcome: 'Lost',
+    rep: currentMerchant.salesRep, salesRep: currentMerchant.salesRep, pipelineAfter: 'Lost'
+  });
+  updateUI();
+  closeModal('lost-modal');
+  if (isGAS()) {
+    google.script.run
+      .withSuccessHandler(() => { showToast('Marked as lost. ID: ' + actId); refreshActiveSheetRow(); })
+      .withFailureHandler(e => showToast('Save failed: ' + (e && e.message ? e.message : e)))
+      .logActivityFromPanel({ merchantId: currentMerchant.id, action: 'Lost', contactMethod: '', contactPerson: '', summary: summary });
+  } else {
+    showToast('Lost logged! ID: ' + actId);
+  }
+}
+function submitDemoLog() {
+  const demoType = document.getElementById('demo-type-input').value || 'Full Platform Demo';
+  const feedback = document.getElementById('demo-feedback-input').value || '';
+  const outcome = document.getElementById('demo-outcome-select').value;
+  currentMerchant.pipeline = 'Demo';
+  const actId = 'ACT-' + Date.now() + '-' + Math.floor(Math.random() * 900 + 100);
+  const summary = `Demo: ${demoType} | Outcome: ${outcome} | Feedback: ${feedback}`;
+  currentMerchant.activities.unshift({
+    id: actId, action: 'Demo', type: 'Demo Session',
+    timestamp: getFormattedNow(), date: getFormattedDateToday(), time: getFormattedTimeNow(),
+    notes: summary, summary: summary, outcome: outcome,
+    rep: currentMerchant.salesRep, salesRep: currentMerchant.salesRep, pipelineAfter: 'Demo'
+  });
+  updateUI();
+  closeModal('demo-modal');
+  if (isGAS()) {
+    google.script.run
+      .withSuccessHandler(() => { showToast('Demo saved! ID: ' + actId); refreshActiveSheetRow(); })
+      .withFailureHandler(e => showToast('Save failed: ' + (e && e.message ? e.message : e)))
+      .logActivityFromPanel({ merchantId: currentMerchant.id, action: 'Demo', contactMethod: '', contactPerson: '', summary: summary });
+  } else {
+    showToast('Demo logged! ID: ' + actId);
+  }
+}
+
+function submitNegotiationLog() {
+  const agreements = document.getElementById('negotiation-agreements-input').value || 'Discussing terms.';
+  const concerns = document.getElementById('negotiation-concerns-input').value || '';
+  const outcome = document.getElementById('negotiation-outcome-select').value;
+  currentMerchant.pipeline = 'Negotiation';
+  const actId = 'ACT-' + Date.now() + '-' + Math.floor(Math.random() * 900 + 100);
+  const summary = `Agreements: ${agreements} | Concerns: ${concerns} | Outcome: ${outcome}`;
+  currentMerchant.activities.unshift({
+    id: actId, action: 'Negotiation', type: 'Negotiation Session',
+    timestamp: getFormattedNow(), date: getFormattedDateToday(), time: getFormattedTimeNow(),
+    notes: summary, summary: summary, outcome: outcome,
+    rep: currentMerchant.salesRep, salesRep: currentMerchant.salesRep, pipelineAfter: 'Negotiation'
+  });
+  updateUI();
+  closeModal('negotiation-modal');
+  if (isGAS()) {
+    google.script.run
+      .withSuccessHandler(() => { showToast('Negotiation saved! ID: ' + actId); refreshActiveSheetRow(); })
+      .withFailureHandler(e => showToast('Save failed: ' + (e && e.message ? e.message : e)))
+      .logActivityFromPanel({ merchantId: currentMerchant.id, action: 'Negotiation', contactMethod: '', contactPerson: '', summary: summary });
+  } else {
+    showToast('Negotiation logged! ID: ' + actId);
+  }
+}
+
+function submitCreateMerchant() {
+  const name = document.getElementById('new-mch-name').value;
+  const mainCategory = document.getElementById('new-mch-main-category').value;
+  const subCategory = document.getElementById('new-mch-sub-category').value;
+  const contactPerson = document.getElementById('new-mch-contact-person').value;
+  const position = document.getElementById('new-mch-position').value;
+  const phone = document.getElementById('new-mch-phone').value;
+  const email = document.getElementById('new-mch-email').value;
+  const branchType = document.getElementById('new-mch-branch-type').value;
+  const numBranches = branchType === 'Single' ? 1 : (document.getElementById('new-mch-branches').value || 1);
+  const region = document.getElementById('new-mch-region').value;
+  const rep = document.getElementById('new-mch-rep').value;
+  const source = document.getElementById('new-mch-source').value;
+  if (!name) { showToast('Enter a business name'); return; }
+  if (isGAS()) {
+    google.script.run
+      .withSuccessHandler(function(merchantId) { showToast('Created: ' + merchantId); selectMerchantById(merchantId); })
+      .withFailureHandler(function(err) { showToast('Error: ' + err); })
+      .createMerchantFromPanel({
+        businessName: name, mainCategory: mainCategory, subCategory: subCategory,
+        contactPerson: contactPerson, position: position, phone: phone, email: email,
+        branchType: branchType, numBranches: numBranches, address: region,
+        salesRepresentative: rep, leadSource: source
+      });
+  } else {
+    currentMerchant.name = name; currentMerchant.mainCategory = mainCategory;
+    currentMerchant.subCategory = subCategory; currentMerchant.contactPerson = contactPerson;
+    currentMerchant.position = position; currentMerchant.phone = phone; currentMerchant.email = email;
+    currentMerchant.branchType = branchType; currentMerchant.branches = numBranches;
+    currentMerchant.address = region; currentMerchant.salesRep = rep;
+    currentMerchant.leadSource = source; currentMerchant.pipeline = 'Lead';
+    updateUI(); showToast('Merchant created!');
+  }
+  closeModal('create-merchant-drawer');
+}
+
+function submitEditMerchant() {
+  const name = document.getElementById('edit-mch-name').value;
+  const mainCategory = document.getElementById('edit-mch-main-category').value;
+  const subCategory = document.getElementById('edit-mch-sub-category').value;
+  const branchType = document.getElementById('edit-mch-branch-type').value;
+  const numBranches = document.getElementById('edit-mch-branches').value || 1;
+  const email = document.getElementById('edit-mch-email').value;
+  const phone = document.getElementById('edit-mch-phone').value;
+  const region = document.getElementById('edit-mch-region').value;
+  const rep = document.getElementById('edit-mch-rep').value;
+  const source = document.getElementById('edit-mch-source').value;
+  currentMerchant.name = name || currentMerchant.name;
+  currentMerchant.mainCategory = mainCategory || currentMerchant.mainCategory;
+  currentMerchant.subCategory = subCategory || currentMerchant.subCategory;
+  currentMerchant.branchType = branchType || currentMerchant.branchType;
+  currentMerchant.branches = numBranches || currentMerchant.branches;
+  currentMerchant.email = email || currentMerchant.email;
+  currentMerchant.phone = phone || currentMerchant.phone;
+  currentMerchant.address = region || currentMerchant.address;
+  currentMerchant.salesRep = rep || currentMerchant.salesRep;
+  currentMerchant.leadSource = source || currentMerchant.leadSource;
+  updateUI();
+  if (isGAS()) {
+    google.script.run
+      .withSuccessHandler(() => { showToast('Profile updated!'); refreshActiveSheetRow(); })
+      .withFailureHandler(e => showToast('Update failed: ' + (e && e.message ? e.message : e)))
+      .updateMerchantFromPanel(currentMerchant.id, {
+        'Business Name': name, 'Main Category': mainCategory, 'Sub Category': subCategory,
+        'Branch Type': branchType, 'Number Of Branches': numBranches,
+        'Email': email, 'Phone': phone, 'Physical Address': region,
+        'Sales Representative': rep, 'Lead Source': source
+      });
+  } else {
+    showToast('Updated locally!');
+  }
+  closeModal('edit-merchant-drawer');
+}
+
+/* ═══ SYNC & BRANCH HELPERS ═════════════════════════════════════ */
+
+function refreshActiveSheetRow() {
+  const icon = document.getElementById('sync-icon');
+  if (icon) icon.classList.add('animate-spin');
+  if (isGAS()) {
+    google.script.run
+      .withSuccessHandler(function(profile) {
+        if (profile) applyProfile(profile);
+        if (icon) icon.classList.remove('animate-spin');
+        updateUI(); showToast('Synced with sheet');
+      })
+      .withFailureHandler(function(err) {
+        if (icon) icon.classList.remove('animate-spin');
+        showToast('Sync error: ' + err);
+      })
+      .getActiveMerchantProfileForPanel();
+  } else {
+    setTimeout(() => {
+      if (icon) icon.classList.remove('animate-spin');
+      updateUI(); showToast('Synced Preview');
+    }, 600);
+  }
+}
+
+function toggleNewMerchantBranchFields() {
+  const type = document.getElementById('new-mch-branch-type').value;
+  const section = document.getElementById('new-mch-multi-branch-section');
+  const branchesInput = document.getElementById('new-mch-branches');
+  if (type === 'Single') {
+    if (branchesInput) { branchesInput.value = 1; branchesInput.disabled = true; }
+    if (section) section.classList.add('hidden');
+  } else {
+    if (branchesInput) branchesInput.disabled = false;
+    if (section) section.classList.remove('hidden');
+    renderBranchEntryFields();
+  }
+}
+
+function renderBranchEntryFields() {
+  const container = document.getElementById('new-mch-branch-entries');
+  const count = parseInt(document.getElementById('new-mch-branches').value) || 1;
+  const type = document.getElementById('new-mch-branch-type').value;
+  if (!container || type !== 'Multi Branch') return;
+  let html = '';
+  for (let i = 1; i <= count; i++) {
+    html += `
+      <div class="flex gap-2">
+        <input type="text" placeholder="Branch ${i} name / location" class="nx-input flex-1">
+        <input type="text" placeholder="Phone" class="nx-input w-24">
+      </div>
+    `;
+  }
+  container.innerHTML = html;
+}
+
+/* ═══ KEYBOARD FLOW ═════════════════════════════════════════════ */
+
+document.addEventListener('DOMContentLoaded', () => {
+  updateSubCategories('new-mch-main-category','new-mch-sub-category','new-mch-cat-scope');
+  updateUI();
+  refreshActiveSheetRow();
+
+  // Enter = Add point (all three DP modals)
+  [['contact-dp-input','contact'],['fu-dp-input','fu'],['mtg-dp-input','mtg']].forEach(([id, p]) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); addModalPoint(p); }
+    });
+  });
+
+  // Enter = Add feedback (feedback tab)
+  const fbi = document.getElementById('feedback-text-input');
+  if (fbi) fbi.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); submitDirectFeedback(); }
+  });
+
+  // Ctrl+Enter = Save contact
+  const notes = document.getElementById('contact-notes-input');
+  if (notes) notes.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); submitContactLog(); }
+  });
+});
+
+/* ── Auto-hide bottom nav: appears on scroll / tab switch, rests when idle ── */
+let navIdleTimer = null;
+function pokeBottomNav() {
+  const nav = document.querySelector('.bottom-nav');
+  if (!nav) return;
+  nav.classList.add('is-visible');
+  if (navIdleTimer) clearTimeout(navIdleTimer);
+  navIdleTimer = setTimeout(() => nav.classList.remove('is-visible'), 1500);
+}
+window.addEventListener('scroll', pokeBottomNav, { passive: true, capture: true });
+document.addEventListener('DOMContentLoaded', () => pokeBottomNav());
+
+/* ── Collapsible Timeline Sections ─────────────────────────────── */
+let activityStreamExpanded = true;
+let pipelineJourneyExpanded = true;
+
+function toggleActivityStream() {
+  activityStreamExpanded = !activityStreamExpanded;
+  const content = document.getElementById('activity-stream-content');
+  const chevron = document.getElementById('activity-stream-chevron');
+  if (content) content.classList.toggle('open', activityStreamExpanded);
+  if (chevron) chevron.classList.toggle('rotated', activityStreamExpanded);
+}
+
+function togglePipelineJourney() {
+  pipelineJourneyExpanded = !pipelineJourneyExpanded;
+  const content = document.getElementById('pipeline-journey-content');
+  const chevron = document.getElementById('pipeline-journey-chevron');
+  if (content) content.classList.toggle('open', pipelineJourneyExpanded);
+  if (chevron) chevron.classList.toggle('rotated', pipelineJourneyExpanded);
+}
+</script>

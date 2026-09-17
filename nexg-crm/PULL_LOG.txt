@@ -1,0 +1,37 @@
+NEXG CRM — clasp pull log
+Date: 2026-09-13 (UTC)
+Account: usernamepgbc@gmail.com
+Machine: C:\Users\lenovo\Desktop\nexg-crm\
+
+1) SOURCES (Option B, fresh clone — Downloads\crm ignored)
+- merchant: 1TPqyJ2MFS91YGqUmvdIktLWmbkaq4Ak5Fy1y9DT1onVoKOsVbVPU0Dus -> nexg-crm\merchant\ (34 files + .clasp.json)
+- host: 10m__jGfenNpO1omKwhIkWWbjv6caY-530ELkTknnyspaaJANvcSHBRJF -> nexg-crm\host\ (46 files + .clasp.json)
+- Each folder has its own .clasp.json with rootDir "." (fixed initial clash where Desktop\.clasp.json blocked second clone; moved merchant binding down, removed root binding).
+
+2) MERCHANT (vendor/service CRM)
+Files: appsscript.json, Code.js, SheetData.js (962 lines), Dashboard.html, Sidebar.html, JS.html, CSS.html, Modals.html, Forms.html, Motion.html, MotionJS.html, SystemProof.js + Email*: Email.js, EmailAdmin.js, EmailCalendar.js, EmailConfig.js, EmailData.js, EmailDebug.js, EmailLogger.js, EmailQueue.js (120 lines), EmailRenderer.js, EmailRouter.js, EmailSender.js (208 lines), EmailTemplates.js + EmailCenter*.html + Email{FollowUp,Introduction,Meeting,Proposal,MasterLayout}.html
+Scopes (appsscript.json): gmail.modify, spreadsheets.currentonly, script.external_request, userinfo.email, script.container.ui, drive.readonly | timeZone Africa/Nairobi | webapp executeAs USER_DEPLOYING access ANYONE_ANONYMOUS (REVIEW: broad — tighten before prod)
+Menu (Code.js onOpen): Open Smart Panel, Dashboard full-screen/dialog/sheet rebuild, Apply Validation, Refresh Active Merchant
+Sheet lock (Code.js onEdit): LOCKED = Merchants, Activities, Meetings, Feedback, Follow Ups, Dashboard, _DashData — manual edits reverted, OWNER='' (set owner hatch to allow fixes)
+Data model (SheetData.js COL/SHEET_NAMES): Merchants (26 cols incl. NXG-CAT-SUB-000000 IDs), Activities, Meetings, Feedback, Follow Ups
+Email flow: panel logActivityFromPanel(sendEmail flag) -> triggerEmailAutomation_ -> EmailRouter -> EmailQueue.enqueue (Email_Queue sheet: Queue ID/Status/Scheduled/Template/Recipient/Data/Metadata/Attempts/Error/Created) -> time trigger runEmailQueueProcessor every 5 min (MAX_PER_RUN 25, MAX_ATTEMPTS 3, LockService) -> EmailSender via GmailApp.sendEmail + logo CID from Drive LOGO_FILE_ID -> EmailLogger to Email_Logs. MailApp.getRemainingDailyQuota used in EmailDebug. Templates: FollowUp/Introduction/Meeting/Proposal + MasterLayout.
+Triggers found: ScriptApp.newTrigger runEmailQueueProcessor timeBased everyMinutes(5); onEdit sheet-lock; onOpen menu.
+
+3) HOST (supply/property CRM)
+Files: appsscript.json, .clasp.json + 00_Project.js, 01_Config.js, 02_Constants.js, 03_Router.js, 04_Init.js (174 lines), 05_Migrations.js, 10_Hosts.js, 11_Activities.js, 12_Meetings.js, 13_EmailLogs.js, 14_Settings.js, 21_SmartPanel.js, 22_Workflows.js, 23_Phase2.js, 40_Security.js, 41_Validation.js, 42_Utilities.js, 43_IDGenerator.js, 44_Audit.js, 99_Debug.js + HTML: Sidebar.html, SmartPanel.html, SmartPanelJS.html (45KB), Dashboard.html, DashboardJS.html, Forms/Cards/Components/Modals/Tables/Theme/StyleGuide/Motion/MotionJS/CSS + Index.html (99 bytes stub)
+STUBS (default myFunction only, 9 files): 20_SearchEngine.js, 21_SmartPanelService.js, 23_Automations.js, 24_Notifications.js, 25_EmailEngine.js, 30_DashboardService.js, 31_ReportsService.js, 32_EmailCenter.js, 33_CalendarService.js — these are the perfecting gap vs merchant.
+Scopes (appsscript.json): NONE declared (implicit) | timeZone Africa/Nairobi | webapp executeAs USER_ACCESSING access ANYONE (REVIEW: broad)
+Menu (04_Init onOpen): Initialize Database (NEXG_initialize -> Migrations.ensureCoreSchemas/DefaultStages/ActivityTypes/DynamicColumns + bootstrap admin + system.initialized event), Open Smart Panel (SmartPanel 600px sidebar), Open Dashboard (web-app launcher), Open Style Guide
+Data model (01_Config + 02_Constants): sheets Hosts/Activities/Meetings/EmailLogs/Settings; prefixes HST/ACT/MTG/EML/SET; stages lead/discovery/qualified/proposal/negotiation/contract/onboarding/live; lifecycle Active/Stale/Re-engaged/Lost/Archived; roles Admin/Manager/Agent/Viewer with permission matrix; email statuses Draft/Queued/Sending/Sent/Delivered/Opened/Clicked/Replied/Failed/Archived; schemas host/activity/meeting/email/settings with audit fields createdBy/updatedBy/archivedBy.
+Email flow (current): SmartPanelJS route workflow.sendEmail -> 22_Workflows.sendEmail via MailApp.sendEmail (no queue yet — unlike merchant). Needs merchant-style queue + logging to EmailLogs.
+No time triggers found in host yet.
+
+4) QUOTA NOTE (consumer account usernamepgbc@gmail.com)
+~100 emails/day via GmailApp/MailApp, 6 min/exec, 90 min/day triggers. Merchant queue (25/run, 5-min) respects this. Host needs same before volume.
+
+5) PERFECTING QUEUE (everything)
+a) Security: tighten webapp access (merchant ANYONE_ANONYMOUS, host ANYONE), set merchant OWNER hatch, host bootstrap admin, declare host scopes explicitly.
+b) Host stubs: implement or remove 9 myFunction files; port merchant EmailQueue/Logger/Router pattern to host EmailLogs.
+c) Sheet truth: verify live Sheet headers match COL (merchant 26) and CORE_SCHEMAS (host); add validation/dropdowns; confirm Email_Queue/Email_Logs/Email_Settings tabs exist.
+d) Reliability: LockService on writes, idempotent queue, retry 3x, append-only Activities timeline, delete-with-internal-email (spec) — verify implemented.
+e) Perf: batch getValues/setValues, cache dropdowns, paginate sidebar search (host searchLimit 100 already).

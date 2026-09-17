@@ -1,0 +1,154 @@
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   NEXG MOTION LAYER v1.0 — load AFTER CSS.html
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 1 · AMBIENT DEPTH (layered gold field + dot grid) ─────────── */
+body::before {
+  content:""; position:fixed; inset:0; z-index:-2; pointer-events:none;
+  background:
+    radial-gradient(520px 340px at 88% -8%,  rgba(212,175,55,0.10), transparent 62%),
+    radial-gradient(420px 300px at -12% 32%, rgba(212,175,55,0.05), transparent 60%),
+    radial-gradient(620px 420px at 50% 118%, rgba(212,175,55,0.07), transparent 65%);
+  animation:nxAmbient 26s ease-in-out infinite alternate;
+}
+body::after {
+  content:""; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.55;
+  background-image:radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size:22px 22px;
+  -webkit-mask-image:linear-gradient(180deg, rgba(0,0,0,.9), rgba(0,0,0,.25) 45%, rgba(0,0,0,.7));
+  mask-image:linear-gradient(180deg, rgba(0,0,0,.9), rgba(0,0,0,.25) 45%, rgba(0,0,0,.7));
+}
+@keyframes nxAmbient {
+  from { transform:translate3d(0,0,0) scale(1); }
+  to   { transform:translate3d(-14px,10px,0) scale(1.06); }
+}
+
+/* ── 2 · ENTRANCE CHOREOGRAPHY (replays on every tab switch) ───── */
+@keyframes nxRise {
+  from { opacity:0; transform:translateY(14px) scale(.985); }
+  to   { opacity:1; transform:none; }
+}
+[id^="tab-content-"] > section { animation:nxRise .5s cubic-bezier(.22,1,.36,1) both; }
+[id^="tab-content-"] > section:nth-child(1) { animation-delay:.02s; }
+[id^="tab-content-"] > section:nth-child(2) { animation-delay:.09s; }
+[id^="tab-content-"] > section:nth-child(3) { animation-delay:.16s; }
+[id^="tab-content-"] > section:nth-child(4) { animation-delay:.23s; }
+
+header     { animation:nxRise .4s cubic-bezier(.22,1,.36,1) both; }
+.bottom-nav{ animation:nxNavIn .55s cubic-bezier(.22,1,.36,1) .1s both; }
+@keyframes nxNavIn { from { transform:translateY(100%); opacity:0; } to { transform:none; opacity:1; } }
+
+/* list stagger — search, feedback, compiled, modal points */
+#mch-search-results > div,
+#feedback-raw-stream-container > div,
+#compiled-positive-list > div,
+#compiled-negative-list > div,
+.modal-dp-list-container > div { animation:nxRise .3s cubic-bezier(.22,1,.36,1) both; }
+#mch-search-results > div:nth-child(1) { animation-delay:.02s; }
+#mch-search-results > div:nth-child(2) { animation-delay:.06s; }
+#mch-search-results > div:nth-child(3) { animation-delay:.10s; }
+#mch-search-results > div:nth-child(4) { animation-delay:.14s; }
+#mch-search-results > div:nth-child(5) { animation-delay:.18s; }
+
+/* ── 3 · LIVING ELEMENTS ───────────────────────────────────────── */
+.pipe-dot.current { animation:nxPipePulse 2.2s ease-in-out infinite; }
+@keyframes nxPipePulse {
+  0%,100% { box-shadow:0 0 0 3px rgba(212,175,55,.14), 0 0 12px rgba(212,175,55,.24); }
+  50%     { box-shadow:0 0 0 5px rgba(212,175,55,.07), 0 0 22px rgba(212,175,55,.45); }
+}
+
+#mch-display-badge { animation:nxBreathe 3.2s ease-in-out infinite; }
+@keyframes nxBreathe { 0%,100% { filter:brightness(1); } 50% { filter:brightness(1.3); } }
+
+.nav-btn.active { animation:nxNavGlow 2.6s ease-in-out infinite; }
+@keyframes nxNavGlow {
+  0%,100% { box-shadow:0 0 16px rgba(212,175,55,.16), 0 6px 14px rgba(0,0,0,.25); }
+  50%     { box-shadow:0 0 24px rgba(212,175,55,.32), 0 6px 14px rgba(0,0,0,.25); }
+}
+
+/* ── 4 · BUTTONS — shimmer sweep, ripple, icon wiggle ──────────── */
+.btn-gold { position:relative; overflow:hidden; }
+.btn-gold::after {
+  content:""; position:absolute; top:0; left:-80%; width:50%; height:100%;
+  background:linear-gradient(105deg, transparent, rgba(255,255,255,.55), transparent);
+  transform:skewX(-20deg); transition:left .55s ease; pointer-events:none;
+}
+.btn-gold:hover::after { left:135%; }
+.btn-gold:active { transform:translateY(0) scale(.97); }
+
+.action-btn, .workflow-btn, .stat-card { position:relative; overflow:hidden; }
+.action-btn:hover svg { animation:nxWiggle .5s ease; }
+@keyframes nxWiggle {
+  0%,100% { transform:rotate(0); } 30% { transform:rotate(-9deg) scale(1.15); } 60% { transform:rotate(6deg); }
+}
+
+.nx-ripple {
+  position:absolute; border-radius:50%; pointer-events:none;
+  background:rgba(255,255,255,.35); transform:scale(0); opacity:.7;
+  animation:nxRipple .5s ease-out forwards;
+}
+@keyframes nxRipple { to { transform:scale(2.6); opacity:0; } }
+
+button:focus-visible { outline:2px solid rgba(212,175,55,.55); outline-offset:2px; }
+
+/* ── 5 · CARDS & TIMELINE hover life ───────────────────────────── */
+.card-hover:hover { transform:translateY(-2px); }
+.tl-item { transition:transform .18s ease; border-radius:12px; }
+.tl-item:hover { transform:translateX(3px); }
+.tl-item:hover::before { box-shadow:0 0 10px rgba(212,175,55,.55); }
+
+.stat-number { display:inline-block; transition:transform .18s ease, color .18s ease; }
+.stat-card:hover .stat-number { transform:scale(1.15); color:#d4af37; }
+.stat-number.nx-pop { animation:nxStatPop .45s cubic-bezier(.34,1.45,.64,1); }
+@keyframes nxStatPop {
+  0% { transform:scale(1); } 40% { transform:scale(1.3); color:#d4af37; } 100% { transform:scale(1); }
+}
+
+/* ── 6 · SYNC SKELETON + SAVE FLASH ────────────────────────────── */
+.nx-skeleton {
+  position:relative; overflow:hidden; color:transparent !important;
+  background:#17171c !important; border-radius:8px; pointer-events:none;
+}
+.nx-skeleton::after {
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(90deg, transparent, rgba(212,175,55,.10), transparent);
+  animation:nxShimmer 1.1s linear infinite;
+}
+@keyframes nxShimmer { from { transform:translateX(-100%); } to { transform:translateX(100%); } }
+
+.nx-flash { animation:nxSaveFlash .7s ease-out; }
+@keyframes nxSaveFlash {
+  0%   { box-shadow:0 0 0 0 rgba(212,175,55,.55); border-color:rgba(212,175,55,.6); }
+  100% { box-shadow:0 0 0 14px rgba(212,175,55,0); }
+}
+#sync-icon.animate-spin { color:#d4af37; }
+
+/* ── 7 · TOAST progress bar ────────────────────────────────────── */
+#toast-notification::after {
+  content:""; position:absolute; left:10px; right:10px; bottom:4px; height:2px; border-radius:2px;
+  background:linear-gradient(90deg,#d4af37,#f0d878); transform-origin:left; transform:scaleX(0);
+}
+#toast-notification.show::after { animation:nxToastBar 3s linear forwards; }
+@keyframes nxToastBar { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+
+/* ── 8 · GO LIVE gold sparks (fired from JS) ───────────────────── */
+.nx-spark {
+  position:fixed; top:-8px; width:var(--sz); height:var(--sz); border-radius:2px;
+  background:linear-gradient(135deg,#f0d878,#d4af37); z-index:300; pointer-events:none;
+  animation:nxFall 1.3s cubic-bezier(.2,.6,.4,1) var(--dl) forwards; opacity:0;
+}
+@keyframes nxFall {
+  0%   { transform:translate3d(0,-10px,0) rotate(0);      opacity:0; }
+  12%  { opacity:1; }
+  100% { transform:translate3d(var(--dx),105vh,0) rotate(540deg); opacity:0; }
+}
+
+/* ── 9 · ACCESSIBILITY ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration:.001s !important; animation-iteration-count:1 !important;
+    transition-duration:.001s !important;
+  }
+}
+</style>

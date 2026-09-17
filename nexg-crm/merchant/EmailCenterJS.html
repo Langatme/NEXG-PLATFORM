@@ -1,0 +1,446 @@
+<script>
+/**
+ * ═══════════════════════════════════════════════════════════════
+ * TEMPORARY EMAIL CENTER DIAGNOSTIC LAYER + FIXED CENTER CONTROLLER
+ * DELETE THIS ENTIRE FILE CONTENTS AND RESTORE ORIGINAL WHEN DONE.
+ * ═══════════════════════════════════════════════════════════════
+ */
+(function () {
+  'use strict';
+  var _diagStart = Date.now();
+  var _diagLog = [];
+  var _diagReport = [];
+
+  function ts() { return ((Date.now() - _diagStart) / 1000).toFixed(3) + 's'; }
+  function log(category, message, data) {
+    var entry = '[' + ts() + '] [' + category + '] ' + message;
+    _diagLog.push(entry);
+    if (data !== undefined) console.log(entry, data);
+    else console.log(entry);
+  }
+  function report(status, message) {
+    _diagReport.push({ status: status, message: message, time: ts() });
+    var icon = status === 'pass' ? '✓' : status === 'fail' ? '✗' : '⚠';
+    console.log(icon + ' ' + message);
+  }
+
+  window.addEventListener('error', function (e) {
+    log('ERROR', 'window.onerror', { message: e.message, filename: e.filename, lineno: e.lineno, colno: e.colno, stack: e.error ? e.error.stack : 'N/A' });
+    report('fail', 'Uncaught JS Error: ' + e.message + ' @ ' + e.filename + ':' + e.lineno);
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    log('ERROR', 'Unhandled Promise Rejection', { reason: e.reason, stack: e.reason && e.reason.stack ? e.reason.stack : 'N/A' });
+    report('fail', 'Unhandled rejection: ' + String(e.reason));
+  });
+
+  var _origInnerHTMLDesc = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+  if (_origInnerHTMLDesc && _origInnerHTMLDesc.set) {
+    Object.defineProperty(Element.prototype, 'innerHTML', {
+      get: _origInnerHTMLDesc.get,
+      set: function (val) {
+        var id = this.id || this.className || this.tagName;
+        var isNEC = !!(this.closest && this.closest('#nec-root'));
+        if (isNEC) {
+          var oldLen = (this.innerHTML || '').length;
+          var newLen = (val || '').length;
+          var caller = '';
+          try { caller = new Error().stack.split('\n')[2].trim(); } catch (e) {}
+          log('DOM-WRITE', 'innerHTML assigned', { target: id, oldLength: oldLen, newLength: newLen, childCountAfter: (val || '').split('<tr').length - 1, caller: caller });
+          if (oldLen > 0 && newLen === 0) {
+            log('DOM-WARN', 'innerHTML CLEARED (possible overwrite)', { target: id, caller: caller });
+            report('fail', 'innerHTML cleared on #' + id + ' by ' + caller);
+          }
+        }
+        return _origInnerHTMLDesc.set.call(this, val);
+      },
+      configurable: true
+    });
+  }
+
+  if (typeof google !== 'undefined' && google.script && google.script.run) {
+    var _origGSR = google.script.run;
+    var _wrapCallback = function (originalFn, label) {
+      return function (data) {
+        log('CALLBACK', label + ' STARTED');
+        try {
+          log('CALLBACK', label + ' DATA RECEIVED', { type: typeof data, isArray: Array.isArray(data), length: Array.isArray(data) ? data.length : 'N/A', keys: data && typeof data === 'object' && !Array.isArray(data) ? Object.keys(data).join(', ') : 'N/A' });
+          if (Array.isArray(data) && data.length > 0) log('CALLBACK', label + ' FIRST ITEM', { keys: Object.keys(data[0]).join(', '), timestamp: data[0].timestamp, template: data[0].template, status: data[0].status });
+          var result = originalFn(data);
+          log('CALLBACK', label + ' COMPLETED');
+          return result;
+        } catch (err) {
+          log('CALLBACK', label + ' EXCEPTION', { message: err.message, stack: err.stack });
+          report('fail', 'Exception in ' + label + ': ' + err.message);
+          throw err;
+        }
+      };
+    };
+    var _origWSH = _origGSR.withSuccessHandler;
+    if (_origWSH) {
+      google.script.run.withSuccessHandler = function (fn) {
+        var wrappedName = fn.name || fn._diagLabel || 'anonymous_success';
+        var wrapped = _wrapCallback(fn, wrappedName);
+        wrapped._diagLabel = wrappedName;
+        return _origWSH.call(this, wrapped);
+      };
+    }
+  }
+
+  function traceFunction(obj, fnName, category) {
+    var orig = obj[fnName];
+    if (typeof orig !== 'function') return;
+    obj[fnName] = function () {
+      var args = Array.prototype.slice.call(arguments);
+      log(category, 'ENTER ' + fnName + '()', { argCount: args.length, args: args.map(function (a) { if (Array.isArray(a)) return 'Array[' + a.length + ']'; if (a && typeof a === 'object') return '{' + Object.keys(a).slice(0, 5).join(',') + '}'; return String(a).substring(0, 80); }) });
+      if (fnName === 'renderLogTable') {
+        var rows = args[0], tbodyId = args[1];
+        log('RENDER', 'renderLogTable DATA CHECK', { rowsType: typeof rows, rowsIsArray: Array.isArray(rows), rowsLength: Array.isArray(rows) ? rows.length : 'N/A', tbodyId: tbodyId, firstRowKeys: Array.isArray(rows) && rows.length > 0 ? Object.keys(rows[0]).join(', ') : 'N/A' });
+        var tbodyEl = document.getElementById(tbodyId);
+        log('RENDER', 'renderLogTable DOM CHECK', { tbodyExists: !!tbodyEl, nodeType: tbodyEl ? tbodyEl.nodeType : 'N/A', currentInnerHTMLLength: tbodyEl ? tbodyEl.innerHTML.length : 'N/A', offsetHeight: tbodyEl ? tbodyEl.offsetHeight : 'N/A', display: tbodyEl ? getComputedStyle(tbodyEl).display : 'N/A', visibility: tbodyEl ? getComputedStyle(tbodyEl).visibility : 'N/A', parentVisible: tbodyEl && tbodyEl.closest('.panel.is-active') ? 'YES' : 'NO' });
+        if (!tbodyEl) { var ap = document.querySelector('.panel.is-active'); log('RENDER-ERROR', 'TBODY NOT FOUND', { requestedId: tbodyId, activePanel: ap ? ap.id : 'NONE' }); report('fail', 'renderLogTable: #' + tbodyId + ' not found.'); }
+      }
+      try {
+        var result = orig.apply(this, arguments);
+        log(category, 'EXIT ' + fnName + '()', { returnType: typeof result });
+        if (fnName === 'renderLogTable') {
+          var postTbody = document.getElementById(args[1]);
+          if (postTbody) {
+            log('RENDER', 'renderLogTable POST-WRITE VERIFY', { innerHTMLLength: postTbody.innerHTML.length, childNodes: postTbody.childNodes.length, rows: postTbody.rows ? postTbody.rows.length : 'N/A' });
+            if (postTbody.innerHTML.length === 0 && Array.isArray(args[0]) && args[0].length > 0) report('fail', 'renderLogTable wrote 0 bytes despite ' + args[0].length + ' rows');
+            else if (postTbody.innerHTML.length > 0) report('pass', 'renderLogTable successfully wrote to #' + args[1]);
+          }
+        }
+        return result;
+      } catch (err) { log(category, 'EXCEPTION in ' + fnName + '()', { message: err.message, stack: err.stack }); report('fail', 'Exception in ' + fnName + ': ' + err.message); throw err; }
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(function () {
+      log('INIT', 'DOMContentLoaded fired');
+      if (typeof Center === 'undefined') { report('fail', 'Center object is UNDEFINED — JS parse error prevented creation'); log('INIT-ERROR', 'Check console for SyntaxError above.'); printFinalReport(); return; }
+      report('pass', 'Center object exists');
+      ['init','refresh','onBootstrap','renderLogTable','renderStats','renderModePill','loadActivity','loadBakedTemplates','go','sendCompose','setSyncing','stampSync','skeletonize','renderErrorRow','countUp','fmtTime','esc','toast'].forEach(function (fn) { traceFunction(Center, fn, 'CENTER'); });
+      log('INIT', 'Function tracers installed');
+      var mount = document.getElementById('nec-mount');
+      if (!mount) report('fail', '#nec-mount not found in DOM'); else report('pass', '#nec-mount exists, innerHTML length: ' + mount.innerHTML.length);
+      ['overview-tbody', 'activity-tbody'].forEach(function (id) { var el = document.getElementById(id); if (!el) report('fail', '#' + id + ' not found at init time'); else report('pass', '#' + id + ' exists'); });
+    }, 100);
+  });
+
+  function printFinalReport() {
+    console.log('\n╔══════════════════════════════════════════════════════════╗\n║       EMAIL CENTER DIAGNOSTIC REPORT                    ║\n╚══════════════════════════════════════════════════════════╝');
+    _diagReport.forEach(function (r) { var icon = r.status === 'pass' ? '✓' : r.status === 'fail' ? '✗' : '⚠'; console.log('  ' + icon + ' [' + r.time + '] ' + r.message); });
+    console.log('\nTotal: ' + _diagLog.length + ' | Pass: ' + _diagReport.filter(function(r){return r.status==='pass'}).length + ' | Fail: ' + _diagReport.filter(function(r){return r.status==='fail'}).length);
+    var firstFail = _diagReport.find(function(r){return r.status==='fail'});
+    if (firstFail) console.log('\n🔴 PIPELINE STOPPED AT: ' + firstFail.message);
+    else console.log('\n🟢 ALL CHECKS PASSED — Pipeline appears healthy');
+    console.log('═══════════════════════════════════════════════════════════\n');
+  }
+  setTimeout(printFinalReport, 8000);
+  window.__NEC_DIAG_REPORT = printFinalReport;
+  window.__NEC_DIAG_LOG = function () { return _diagLog; };
+  log('DIAG', 'Diagnostic layer installed. Report auto-print in 8s. Run window.__NEC_DIAG_REPORT() manually.');
+})();
+
+// ── SHIM FOR GOOGLE SCRIPT RUN IN MODAL CONTEXT ────────────────
+if (typeof google === 'undefined' && window.parent && window.parent.google) { window.google = window.parent.google; }
+
+// ── CENTER CONTROLLER (FIXED — NO DOUBLE COMMAS) ───────────────
+var NEC_LONG = {
+  message_body: 1, follow_up_message: 1, reengagement_message: 1, intro_line: 1,
+  meeting_summary: 1, discussion_points: 1, next_steps: 1, follow_up_date: 1,
+  proposal_summary: 1, agreed_terms: 1, open_items: 1, next_step: 1, next_action: 1,
+  completed_items: 1, milestone: 1, first_steps: 1, meeting_location_or_link: 1
+};
+
+var Center = {
+  state: { templates: [], config: {}, panel: 'overview', composeKey: null, previewTimer: null, sendMode: 'test' },
+  _diag: function (msg) { try { console.log('NEC ' + msg); } catch (e) {} },
+
+  loadBakedTemplates: function () {
+    var el = document.getElementById('nec-templates-data');
+    if (!el) { this._diag('no baked template block'); return 0; }
+    var raw = (el.textContent || '').trim();
+    if (raw.indexOf('<?') === 0) { this._diag('baked block not evaluated'); return 0; }
+    var list = [];
+    try { list = JSON.parse(raw || '[]'); } catch (e) { this._diag('baked JSON parse failed: ' + e.message); list = []; }
+    if (Array.isArray(list) && list.length) {
+      this.state.templates = list;
+      this.populateTemplateSelect(list);
+      this.renderTemplates(list);
+      if (!this.state.composeKey) this.selectTemplate(list[0].key);
+      this._diag('baked ' + list.length + ' template(s)');
+    }
+    return list.length;
+  },
+
+  init: function () {
+    var self = this;
+    document.querySelectorAll('.nav-item').forEach(function (item) { item.addEventListener('click', function () { self.go(item.dataset.panel); }); });
+    var oc = document.getElementById('overview-compose'); if (oc) oc.addEventListener('click', function () { self.go('compose'); });
+    var oa = document.getElementById('overview-all'); if (oa) oa.addEventListener('click', function () { self.go('activity'); });
+    var rb = document.getElementById('refresh-btn'); if (rb) rb.addEventListener('click', function () { self.refresh(); });
+    var ct = document.getElementById('compose-template'); if (ct) ct.addEventListener('change', function () { self.selectTemplate(this.value); });
+    var cs = document.getElementById('compose-send'); if (cs) cs.addEventListener('click', function () { self.sendCompose(); });
+    var mt = document.getElementById('compose-mode-test'); if (mt) mt.addEventListener('click', function () { self.setComposeMode('test'); });
+    var ml = document.getElementById('compose-mode-live'); if (ml) ml.addEventListener('click', function () { self.setComposeMode('live'); });
+    document.querySelectorAll('.tab').forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('is-active'); });
+        tab.classList.add('is-active');
+        self.loadActivity(tab.dataset.filter);
+      });
+    });
+    var ss = document.getElementById('settings-save'); if (ss) ss.addEventListener('click', function () { self.saveSettings(); });
+    var veil = document.getElementById('preview-veil');
+    if (veil) {
+      var mc = document.getElementById('modal-close'); if (mc) mc.addEventListener('click', function () { veil.classList.remove('open'); });
+      veil.addEventListener('click', function (e) { if (e.target === veil) veil.classList.remove('open'); });
+    }
+    this.loadBakedTemplates();
+    this.setComposeMode('test');
+    this.refresh();
+  },
+
+  prettyKey: function (k) { return String(k || '').toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }); },
+
+  groupOrder: function (list) {
+    var order = ['SALES', 'ONBOARDING', 'RELATIONSHIP'];
+    var buckets = {};
+    (list || []).forEach(function (t) { var g = t.group || 'OTHER'; (buckets[g] = buckets[g] || []).push(t); });
+    return order.concat(Object.keys(buckets).filter(function (g) { return order.indexOf(g) < 0; })).filter(function (g) { return buckets[g]; }).map(function (g) { return { group: g, items: buckets[g] }; });
+  },
+
+  refresh: function () {
+    var self = this;
+    this.setSyncing(true);
+    this.skeletonize('overview-tbody');
+    google.script.run.withSuccessHandler(function (res) { self.onBootstrap(res); }).withFailureHandler(function (err) { self.setSyncing(false); var msg = (err && err.message) ? err.message : String(err); self._diag('ccBootstrap FAILED: ' + msg); self.renderErrorRow('overview-tbody', 'Server error: ' + msg); self.toast('Could not load stats: ' + msg, 'err'); }).ccBootstrap();
+  },
+
+  onBootstrap: function (res) {
+    res = res || {};
+    console.log('[NEC] onBootstrap received:', res);
+    console.log('[NEC] bootstrap ok:', res.ok);
+    console.log('[NEC] recentLogs isArray:', Array.isArray(res.recentLogs), 'length:', Array.isArray(res.recentLogs) ? res.recentLogs.length : 'N/A');
+    if (res.ok === false || res.error) {
+      var msg = res.error || 'Unknown server error';
+      this._diag('ccBootstrap returned error: ' + msg);
+      this.renderErrorRow('overview-tbody', 'Server error: ' + msg);
+      this.toast('Stats unavailable: ' + msg, 'err');
+      this.setSyncing(false);
+      return;
+    }
+    var srv = Array.isArray(res.templates) ? res.templates : [];
+    if (srv.length) { this.state.templates = srv; this.populateTemplateSelect(srv); this.renderTemplates(srv); if (!this.state.composeKey) this.selectTemplate(srv[0].key); }
+    else if (!this.state.templates.length) { this.renderTemplates([]); }
+    this.state.config = res.config || {};
+    this.renderModePill(this.state.config);
+    this.renderStats(res.stats || {});
+    console.log('[NEC] About to render overview table. recentLogs length:', Array.isArray(res.recentLogs) ? res.recentLogs.length : 'NOT ARRAY');
+    this.renderLogTable(res.recentLogs || [], 'overview-tbody');
+    this.setComposeMode(this.state.config.testMode ? 'test' : 'live');
+    this.setSyncing(false);
+    this.stampSync();
+  },
+
+  renderModePill: function (config) {
+    var pill = document.getElementById('mode-pill'); if (!pill) return;
+    if (config.testMode) { pill.className = 'pill pill-test'; pill.innerHTML = '<span class="dot"></span>TEST MODE'; }
+    else { pill.className = 'pill pill-live'; pill.innerHTML = '<span class="dot"></span>LIVE'; }
+  },
+
+  renderStats: function (stats) {
+    var sentEl = document.getElementById('stat-sent'); if (sentEl) sentEl.textContent = stats.sent || 0;
+    var failedEl = document.getElementById('stat-failed'); if (failedEl) failedEl.textContent = stats.failed || 0;
+    var testEl = document.getElementById('stat-test'); if (testEl) testEl.textContent = stats.testSends || 0;
+    var lastEl = document.getElementById('stat-last'); if (lastEl) lastEl.textContent = stats.lastSentAt ? this.fmtTime(stats.lastSentAt) : '\u2014';
+  },
+
+  renderErrorRow: function (tbodyId, msg) {
+    var tbody = document.getElementById(tbodyId); if (!tbody) return;
+    tbody.innerHTML = '<tr class="row-error"><td colspan="5" class="empty-cell">' + this.esc(msg) + '</td></tr>';
+  },
+
+  renderLogTable: function (rows, tbodyId) {
+    console.log('[NEC] renderLogTable called. tbodyId:', tbodyId, 'rows isArray:', Array.isArray(rows), 'length:', Array.isArray(rows) ? rows.length : 'N/A');
+    var tbody = document.getElementById(tbodyId);
+    console.log('[NEC] target tbody exists:', !!tbody);
+    if (!tbody) { console.error('[NEC] TBODY NOT FOUND:', tbodyId); return; }
+    if (!rows || !rows.length) { console.warn('[NEC] EMPTY ROWS for', tbodyId); tbody.innerHTML = '<tr><td colspan="5" class="empty-cell">No email activity recorded yet.</td></tr>'; return; }
+    var self = this; var html = '';
+    rows.forEach(function (log) {
+      html += '<tr' + (log.error ? ' class="row-error"' : '') + '>' +
+        '<td class="mono td-time">' + self.esc(self.fmtTime(log.timestamp)) + '</td>' +
+        '<td class="td-template">' + self.esc(self.prettyKey(log.template)) + '</td>' +
+        '<td class="mono td-recipient">' + self.esc(log.recipient || '\u2014') + '</td>' +
+        '<td class="td-status"' + (log.error ? ' title="' + self.esc(log.error) + '"' : '') + '>' + self.statusBadge(log.status) + '</td>' +
+        '<td class="td-mode">' + self.modeBadge(log.testMode) + '</td></tr>';
+    });
+    console.log('[NEC] renderLogTable writing HTML length:', html.length, 'to', tbodyId);
+    tbody.innerHTML = html;
+    console.log('[NEC] POST-WRITE tbody.innerHTML length:', tbody.innerHTML.length, 'rows:', tbody.rows ? tbody.rows.length : 'N/A');
+  },
+
+  statusBadge: function (status) {
+    var s = String(status || '').toUpperCase();
+    if (s === 'SENT') return '<span class="badge badge-sent">\u25CF SENT</span>';
+    if (s === 'FAILED') return '<span class="badge badge-failed">\u25CF FAILED</span>';
+    return '<span class="badge badge-neutral">' + this.esc(s || 'INFO') + '</span>';
+  },
+
+  modeBadge: function (testMode) {
+    var isTest = testMode === true || String(testMode).toUpperCase() === 'TRUE';
+    return isTest ? '<span class="badge badge-test">TEST</span>' : '<span class="badge badge-live">LIVE</span>';
+  },
+
+  renderTemplates: function (list) {
+    var grid = document.getElementById('tpl-grid'); if (!grid) return;
+    grid.innerHTML = '';
+    if (!list || !list.length) { grid.innerHTML = '<div class="empty-cell">No templates registered on the server.</div>'; return; }
+    var self = this;
+    this.groupOrder(list).forEach(function (g) {
+      var head = document.createElement('div');
+      head.setAttribute('style', 'grid-column:1/-1;font:700 12px/1 "IBM Plex Mono",monospace;letter-spacing:.22em;text-transform:uppercase;color:#004aad;margin:10px 0 2px;padding-bottom:8px;border-bottom:2px solid #d9e1ec;');
+      head.textContent = g.group + '  (' + g.items.length + ')';
+      grid.appendChild(head);
+      g.items.forEach(function (t) {
+        var card = document.createElement('article'); card.className = 'tpl-card';
+        var chips = (t.variables || []).map(function (v) { return '<span class="var-chip mono">{{' + v + '}}</span>'; }).join('');
+        card.innerHTML = '<div class="tpl-key">' + self.esc(self.prettyKey(t.key)) + '</div><div class="tpl-subject mono">' + self.esc(t.subject || '') + '</div><div class="tpl-vars">' + chips + '</div><div class="tpl-actions"><button class="btn btn-ghost tpl-preview-btn">Preview</button><button class="btn btn-primary tpl-compose-btn">Compose</button></div>';
+        card.querySelector('.tpl-preview-btn').addEventListener('click', function () { self.openTemplatePreview(t.key); });
+        card.querySelector('.tpl-compose-btn').addEventListener('click', function () { self.selectTemplate(t.key); self.go('compose'); });
+        grid.appendChild(card);
+      });
+    });
+  },
+
+  populateTemplateSelect: function (list) {
+    var sel = document.getElementById('compose-template'); if (!sel) return;
+    sel.innerHTML = '';
+    if (!list || !list.length) { var o = document.createElement('option'); o.textContent = '(no templates)'; sel.appendChild(o); return; }
+    var self = this;
+    this.groupOrder(list).forEach(function (g) {
+      var og = document.createElement('optgroup'); og.label = g.group;
+      g.items.forEach(function (t) { var o = document.createElement('option'); o.value = t.key; o.textContent = self.prettyKey(t.key); og.appendChild(o); });
+      sel.appendChild(og);
+    });
+  },
+
+  openTemplatePreview: function (key) {
+    var veil = document.getElementById('preview-veil'); var frame = document.getElementById('modal-frame'); var title = document.getElementById('modal-title');
+    if (!veil || !frame) { this.toast('Preview panel not available.', 'warn'); return; }
+    if (title) title.textContent = this.prettyKey(key);
+    frame.srcdoc = '<body style="font-family:sans-serif;padding:40px;color:#8a97a8;text-align:center;">Rendering preview\u2026</body>';
+    veil.classList.add('open');
+    google.script.run.withSuccessHandler(function (res) { frame.srcdoc = res.html; }).withFailureHandler(function (err) { frame.srcdoc = '<body style="font-family:sans-serif;padding:40px;color:#d13f3f;">Preview failed: ' + err.message + '</body>'; }).ccPreview(key, this.sampleData());
+  },
+
+  sampleData: function () {
+    return { email_subject: 'A note from NEXG', contact_person: 'Jane Doe', business_name: 'Acme Coffee Roasters', sales_rep: 'John Smith', sales_rep_email: 'john@nexg.co', meeting_date: 'August 12, 2026', meeting_time: '2:00 PM EAT', meeting_type: 'Video call (Google Meet)', meeting_purpose: 'Understand your current setup and walk through how NEXG fits.', meeting_location_or_link: 'Join the call: https://meet.google.com/abc-defg-hij', meeting_summary: 'We covered your current workflow, the pain points at peak hours, and where NEXG can take load off your team.', discussion_points: 'Current tooling \u2022 Peak-hour bottlenecks \u2022 Reporting needs \u2022 Timeline to go live', next_steps: 'We will send a tailored proposal by Friday \u2022 You will review with your partner \u2022 We reconnect next Tuesday', follow_up_date: 'Tuesday, August 18, 2026', follow_up_message: 'I know things get busy \u2014 I simply did not want our conversation to slip.', next_action: 'Reply with a time that works for a 15-minute call.', proposal_date: 'August 8, 2026', proposal_reference: 'NEXG-PR-2026-0142', proposal_summary: 'A 12-month NEXG Growth Plan covering onboarding, the dashboard, and ongoing support.', agreed_terms: '12-month term \u2022 Single outlet \u2022 Onboarding included \u2022 Monthly support call', open_items: 'Final outlet address confirmation \u2022 Preferred go-live week', next_step: 'We will circulate the agreement once you confirm the two open items.', contract_id: 'NEXG-AGR-2026-0142', onboarding_next_step: 'Your welcome pack and document checklist arrive within one business day.', documents_status: 'Checklist sent \u2014 2 of 4 received', training_status: 'Scheduled for next week', system_status: 'Account created', launch_status: 'On track', milestone: 'Training completed \u2014 your team is set up on the dashboard.', completed_items: 'Account created \u2022 Documents verified \u2022 Team training done', go_live_date: 'September 1, 2026', first_steps: 'Log in \u2022 Confirm opening details \u2022 Reach out with your first question', reengagement_message: 'We have added a few things that suit Acme Coffee Roasters well.', message_body: 'A quick update and thanks for the partnership so far.', cta_link: 'https://nexg.co/meeting' };
+  },
+
+  selectTemplate: function (key) {
+    this.state.composeKey = key;
+    var sel = document.getElementById('compose-template'); if (sel) sel.value = key;
+    var def = this.state.templates.find(function (t) { return t.key === key; });
+    var wrap = document.getElementById('compose-fields'); if (wrap) wrap.innerHTML = '';
+    if (!def || !wrap) return;
+    var self = this;
+    def.variables.forEach(function (v) {
+      var f = document.createElement('div'); f.className = 'field';
+      var lab = document.createElement('label'); lab.textContent = v.replace(/_/g, ' '); f.appendChild(lab);
+      var ctrl;
+      var DATE_VARS = ['meeting_date', 'proposal_date', 'follow_up_date', 'go_live_date'];
+      var TIME_VARS = ['meeting_time'];
+      if (NEC_LONG[v]) { ctrl = document.createElement('textarea'); ctrl.rows = 4; ctrl.style.resize = 'vertical'; ctrl.style.minHeight = '84px'; ctrl.style.fontFamily = 'inherit'; }
+      else { ctrl = document.createElement('input'); if (v === 'cta_link' || v.indexOf('email') > -1) ctrl.type = 'email'; else if (DATE_VARS.indexOf(v) !== -1) ctrl.type = 'date'; else if (TIME_VARS.indexOf(v) !== -1) ctrl.type = 'time'; else ctrl.type = 'text'; }
+      ctrl.dataset.variable = v; ctrl.placeholder = '{{' + v + '}}';
+      ctrl.addEventListener('input', function () { self.queuePreview(); });
+      f.appendChild(ctrl); wrap.appendChild(f);
+    });
+    this.updateComposeHint(); this.queuePreview();
+  },
+
+  setComposeMode: function (mode) {
+    this.state.sendMode = (mode === 'live') ? 'live' : 'test';
+    var bt = document.getElementById('compose-mode-test'); var bl = document.getElementById('compose-mode-live'); var hint = document.getElementById('compose-hint');
+    var live = this.state.sendMode === 'live';
+    if (bt) { bt.style.background = live ? '#fff' : '#004aad'; bt.style.color = live ? '#004aad' : '#fff'; bt.style.borderColor = live ? '#c6d6ee' : '#004aad'; }
+    if (bl) { bl.style.background = live ? '#004aad' : '#fff'; bl.style.color = live ? '#fff' : '#004aad'; bl.style.borderColor = live ? '#004aad' : '#c6d6ee'; }
+    if (hint) { if (live) { hint.textContent = '\uD83D\uDE80 LIVE \u2014 sends to the address you typed, for real.'; hint.style.color = '#178f63'; } else { hint.textContent = '\uD83E\uDDEA TEST \u2014 sends to your admin inbox (' + (this.state.config.adminEmail || 'ADMIN_EMAIL') + '), NOT the typed address.'; hint.style.color = '#dd8a06'; } }
+  },
+
+  updateComposeHint: function () { this.setComposeMode(this.state.sendMode || 'test'); },
+
+  collectData: function () { var data = {}; document.querySelectorAll('#compose-fields input, #compose-fields textarea').forEach(function (i) { data[i.dataset.variable] = i.value; }); return data; },
+
+  queuePreview: function () { clearTimeout(this.state.previewTimer); var hint = document.getElementById('preview-hint'); if (hint) hint.textContent = 'RENDERING\u2026'; var self = this; this.state.previewTimer = setTimeout(function () { self.renderPreview(); }, 450); },
+
+  renderPreview: function () {
+    var key = this.state.composeKey; if (!key) return;
+    google.script.run.withSuccessHandler(function (res) { var s = document.getElementById('compose-subject'); if (s) s.textContent = res.subject; var f = document.getElementById('compose-frame'); if (f) f.srcdoc = res.html; var h = document.getElementById('preview-hint'); if (h) h.textContent = 'LIVE PREVIEW'; }).withFailureHandler(function () { var h = document.getElementById('preview-hint'); if (h) h.textContent = 'PREVIEW FAILED'; }).ccPreview(key, this.collectData());
+  },
+
+  sendCompose: function () {
+    if (!this.state.composeKey) { this.toast('Pick a template first.', 'err'); return; }
+    var r = document.getElementById('compose-recipient'); var recipient = r ? r.value.trim() : '';
+    if (!recipient) { this.toast('Enter a recipient email address first.', 'err'); return; }
+    var sendMode = this.state.sendMode === 'live' ? 'live' : 'test';
+    if (sendMode === 'live' && !window.confirm('LIVE SEND\n\nThis sends a REAL email to:\n' + recipient + '\n\nContinue?')) return;
+    var btn = document.getElementById('compose-send'); var self = this;
+    if (btn) { btn.disabled = true; btn.textContent = 'Sending\u2026'; }
+    google.script.run.withSuccessHandler(function (res) { if (btn) { btn.disabled = false; btn.textContent = 'Send email'; } if (res.success) { self.toast('Sent to ' + res.sentTo + (res.testMode ? ' (test)' : '') + ' \u00B7 from ' + (res.from || '?'), 'ok'); self.refresh(); } else { self.toast('Send failed: ' + (res.error || 'unknown error'), 'err'); } }).withFailureHandler(function (err) { if (btn) { btn.disabled = false; btn.textContent = 'Send email'; } self.toast('Send failed: ' + (err && err.message ? err.message : err), 'err'); }).ccSend(this.state.composeKey, recipient, this.collectData(), sendMode);
+  },
+
+  loadActivity: function (filter) {
+    var self = this; var tbody = document.getElementById('activity-tbody');
+    console.log('[NEC] loadActivity called. filter:', filter, 'tbody exists:', !!tbody);
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="5"><div class="skel" style="margin:6px 0"></div><div class="skel" style="margin:6px 0;width:70%"></div></td></tr>';
+    google.script.run.withSuccessHandler(function (rows) {
+      console.log('[NEC] ccLogs returned. isArray:', Array.isArray(rows), 'length:', Array.isArray(rows) ? rows.length : 'N/A');
+      if (Array.isArray(rows) && rows.length > 0) console.log('[NEC] ccLogs first row keys:', Object.keys(rows[0]).join(', '));
+      self.renderLogTable(rows, 'activity-tbody');
+    }).withFailureHandler(function (err) { var msg = (err && err.message) ? err.message : String(err); console.error('[NEC] ccLogs FAILED:', msg); self.renderErrorRow('activity-tbody', 'Could not load logs: ' + msg); self.toast('Could not load logs: ' + msg, 'err'); }).ccLogs(60, filter);
+  },
+
+  loadSettings: function () {
+    var textKeys = ['ADMIN_EMAIL', 'FROM_NAME', 'FROM_EMAIL', 'REPLY_TO', 'COMPANY_NAME', 'WEBSITE', 'PHONE', 'LOGO_FILE_ID'];
+    google.script.run.withSuccessHandler(function (cfg) { textKeys.forEach(function (k) { var el = document.getElementById('set-' + k); if (el) el.value = cfg[k] || ''; }); var tm = document.getElementById('set-TEST_MODE'); if (tm) tm.checked = cfg.TEST_MODE === true; var lg = document.getElementById('set-ENABLE_LOGGING'); if (lg) lg.checked = cfg.ENABLE_LOGGING === true; }).ccSettings();
+  },
+
+  saveSettings: function () {
+    var payload = {};
+    ['ADMIN_EMAIL', 'FROM_NAME', 'FROM_EMAIL', 'REPLY_TO', 'COMPANY_NAME', 'WEBSITE', 'PHONE', 'LOGO_FILE_ID'].forEach(function (k) { var el = document.getElementById('set-' + k); payload[k] = el ? el.value.trim() : ''; });
+    var tm = document.getElementById('set-TEST_MODE'); payload.TEST_MODE = tm ? tm.checked : false;
+    var lg = document.getElementById('set-ENABLE_LOGGING'); payload.ENABLE_LOGGING = lg ? lg.checked : false;
+    var btn = document.getElementById('settings-save'); var self = this;
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving\u2026'; }
+    google.script.run.withSuccessHandler(function (res) { if (btn) { btn.disabled = false; btn.textContent = 'Save settings'; } self.toast('Settings saved (' + res.updated.length + ' keys written).', 'ok'); if (res.validation.warnings.length) self.toast(res.validation.warnings[0], 'warn'); self.refresh(); }).withFailureHandler(function (err) { if (btn) { btn.disabled = false; btn.textContent = 'Save settings'; } self.toast('Save failed: ' + (err && err.message ? err.message : err), 'err'); }).ccSaveSettings(payload);
+  },
+
+  go: function (panel) {
+    this.state.panel = panel;
+    document.querySelectorAll('.nav-item').forEach(function (n) { n.classList.toggle('is-active', n.dataset.panel === panel); });
+    document.querySelectorAll('.panel').forEach(function (p) { p.classList.toggle('is-active', p.id === 'panel-' + panel); });
+    var names = { overview: 'Overview', compose: 'Compose', templates: 'Templates', activity: 'Activity Log', settings: 'Settings' };
+    var cr = document.getElementById('crumb-panel'); if (cr) cr.textContent = names[panel] || panel;
+    if (panel === 'activity') this.loadActivity('ALL');
+    if (panel === 'settings') this.loadSettings();
+  },
+
+  fmtTime: function (ts) { if (!ts) return '\u2014'; var d = new Date(ts); if (isNaN(d.getTime())) return '\u2014'; var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; var pad = function (n) { return String(n).padStart(2, '0'); }; return months[d.getMonth()] + ' ' + d.getDate() + ' \u00B7 ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); },
+
+  esc: function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); },
+
+  toast: function (msg, type) { var root = document.getElementById('toast-root'); if (!root) return; var el = document.createElement('div'); el.className = 'toast ' + (type || ''); el.textContent = msg; root.appendChild(el); setTimeout(function () { el.style.transition = 'opacity .3s, transform .3s'; el.style.opacity = '0'; el.style.transform = 'translateX(34px)'; setTimeout(function () { el.remove(); }, 320); }, 4200); },
+
+  setSyncing: function (on) { var b = document.getElementById('refresh-btn'); if (b) b.classList.toggle('spinning', on); },
+
+  stampSync: function () { var el = document.getElementById('sync-time'); if (!el) return; var d = new Date(); var pad = function (n) { return String(n).padStart(2, '0'); }; el.textContent = 'SYNCED ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); },
+
+  skeletonize: function (tbodyId) { var tbody = document.getElementById(tbodyId); if (!tbody) return; var html = ''; for (var i = 0; i < 4; i++) html += '<tr><td colspan="5"><div class="skel" style="margin:6px 0"></div></td></tr>'; tbody.innerHTML = html; }
+};
+</script>

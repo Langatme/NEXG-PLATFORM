@@ -1,0 +1,992 @@
+<script>
+(function () {
+  'use strict';
+
+  var SP = { boot: null, ws: null, tab: 'today', hostId: null, collapsed: {}, pinned: [], stageFrame: null };
+  var cache = {};
+
+  function qs(s, c) { return (c || document).querySelector(s); }
+  function qsa(s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); }
+  function esc(v) { return String(v === null || v === undefined ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+  function fmtDate(v) { if (!v) return '-'; var d = new Date(v); return isNaN(d.getTime()) ? esc(v) : d.toLocaleString(); }
+  function toast(v, t, m) { if (window.NEXG_UI && NEXG_UI.toast) NEXG_UI.toast({ variant: v, title: t, message: m }); else fallbackToast(v, t, m); }
+  function fallbackToast(v, t, m) {
+    var r = qs('#nx-toast-region'); if (!r) return;
+    var el = document.createElement('div'); el.className = 'nx-toast nx-toast--' + v;
+    el.innerHTML = '<span class="material-symbols-outlined nx-toast__icon">' + (v === 'success' ? 'check_circle' : v === 'error' ? 'error' : 'info') + '</span><div><div class="nx-toast__title">' + esc(t) + '</div><div class="nx-toast__message">' + esc(m || '') + '</div></div>';
+    r.appendChild(el); requestAnimationFrame(function () { el.classList.add('is-visible'); });
+    setTimeout(function () { el.classList.remove('is-visible'); setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 200); }, v === 'error' ? 6000 : 3200);
+  }
+
+  function api(route, payload, ok, fail) {
+    google.script.run
+      .withSuccessHandler(function (res) { if (res && res.success) ok(res); else (fail || onFail)(res && res.error ? res.error.message : 'Request failed.'); })
+      .withFailureHandler(function (err) { (fail || onFail)(err.message || 'Server error.'); })
+      .NEXG_api({ route: route, payload: payload || {} });
+  }
+  function onFail(m) { toast('error', 'Action failed', m); }
+
+  var bootPromise = null;
+  function getBoot(cb) {
+    if (SP.boot) { cb({ data: SP.boot }); return; }
+    if (bootPromise) { bootPromise.push(cb); return; }
+    bootPromise = [cb];
+    api('panel.bootstrap', {}, function (res) {
+      SP.boot = res.data; updateBadge();
+      var w = bootPromise; bootPromise = null; w.forEach(function (c) { c(res); });
+    }, function (m) { var w = bootPromise; bootPromise = null; w.forEach(function () { onFail(m); }); });
+  }
+  function getCached(key, route, payload, cb, fail) {
+    if (cache[key]) { cb(cache[key]); return; }
+    api(route, payload, function (res) { cache[key] = res; cb(res); }, fail);
+  }
+  function invalidateCache() { cache = {}; }
+
+  function stageLabel(k) { if (!SP.boot) return k || 'Lead'; var s = SP.boot.stages.find(function (i) { return i.key === k; }); return s ? s.label : (k || 'Lead'); }
+  function stageIndex(k) { if (!SP.boot) return 0; var i = SP.boot.stages.findIndex(function (x) { return x.key === k; }); return i < 0 ? 0 : i; }
+  function can(p) { return SP.boot && (!SP.boot.permissions || SP.boot.permissions.indexOf('*') !== -1 || SP.boot.permissions.indexOf(p) !== -1); }
+
+  var STAGE_REQUIREMENTS = {
+    lead: ['Contact details captured', 'Lead source recorded'],
+    discovery: ['First call logged', 'Property profile started'],
+    qualified: ['Discovery fields complete', 'Decision maker confirmed'],
+    proposal: ['Proposal sent', 'Commercial terms agreed'],
+    negotiation: ['Objections logged', 'Final terms accepted'],
+    contract: ['Contract signed', 'Verification passed'],
+    onboarding: ['Photography', 'Inspection', 'Branding', 'Training', 'Listing'],
+    live: ['Go live confirmed', 'First review scheduled']
+  };
+  var OUTCOMES = ['Answered', 'No Answer', 'Busy', 'Wrong Number', 'Call Back Requested', 'Interested', 'Not Interested'];
+  var ONBOARDING_STEPS = ['Photography', 'Inspection', 'Branding', 'Training', 'Listing', 'GoLive'];
+
+  /* ---------- Card primitive: header is a real button so the WHOLE card expands reliably ---------- */
+  function card(id, title, summary, bodyHtml, opts) {
+    opts = opts || {};
+    var collapsed = SP.collapsed[id] ? ' is-collapsed' : '';
+    return '<section class="nx-card2' + collapsed + '" data-card="' + id + '">' +
+      '<button type="button" class="nx-card2__head" data-action="toggle" data-id="' + id + '" aria-expanded="' + (!SP.collapsed[id]) + '">' +
+        '<span class="nx-card2__title">' + esc(title) + '</span>' +
+        (summary ? '<span class="nx-card2__summary">' + summary + '</span>' : '') +
+        '<span class="nx-card2__spacer"></span>' +
+        (opts.enter ? '<span class="nx-card2__iconbtn" data-action="enter" data-id="' + id + '" role="button" tabindex="0" aria-label="Open ' + esc(title) + '"><span class="material-symbols-outlined">open_in_full</span></span>' : '') +
+        '<span class="nx-card2__chevron"><span class="material-symbols-outlined">' + (SP.collapsed[id] ? 'expand_more' : 'expand_less') + '</span></span>' +
+      '</button>' +
+      '<div class="nx-card2__collapse"><div class="nx-card2__inner"><div class="nx-card2__body">' + bodyHtml + '</div>' +
+      (opts.footer ? '<div class="nx-card2__footer">' + opts.footer + '</div>' : '') +
+      '</div></div>' +
+    '</section>';
+  }
+
+  function emptyState(icon, title, message, actionLabel, actionAttrs) {
+    return '<div class="nx-empty"><div class="nx-empty__icon"><span class="material-symbols-outlined">' + icon + '</span></div>' +
+      '<div class="nx-empty__title">' + esc(title) + '</div>' +
+      (message ? '<div class="nx-empty__message">' + esc(message) + '</div>' : '') +
+      (actionLabel ? '<button class="nx-button nx-button--primary" ' + (actionAttrs || '') + '>' + esc(actionLabel) + '</button>' : '') + '</div>';
+  }
+  function errorState(msg, retryTab) {
+    return '<div class="nx-alert nx-alert--danger"><div><div class="nx-alert__title">Something went wrong</div><div class="nx-alert__message">' + esc(msg) + '</div>' +
+      '<button class="nx-button nx-button--danger nx-mt-2" data-action="retry" data-tab="' + retryTab + '">Retry</button></div></div>';
+  }
+  function chip(t, tone) { return '<span class="nx-chip nx-chip--' + (tone || 'primary') + '">' + esc(t) + '</span>'; }
+  function skeleton(n) { var s = ''; for (var i = 0; i < n; i++) s += '<div class="nx-skeleton nx-skeleton--card"></div>'; return s; }
+  function iconFor(t) {
+    if (t.indexOf('call') === 0) return 'call';
+    if (t.indexOf('meeting') === 0) return 'event';
+    if (t.indexOf('email') === 0) return 'mail';
+    if (t.indexOf('followup') === 0) return 'alarm';
+    if (t.indexOf('onboarding') === 0 || t.indexOf('photography') === 0 || t.indexOf('inspection') === 0) return 'assignment';
+    if (t.indexOf('note') === 0) return 'edit_note';
+    if (t.indexOf('stage') !== -1) return 'flag';
+    return 'touch_app';
+  }
+
+  /* ---------- Modal engine ---------- */
+  function openModal(html) {
+    qs('#modalRoot').innerHTML = '<div class="nx-overlay" role="dialog" aria-modal="true" tabindex="-1"><div class="nx-overlay__container"><div class="nx-modal">' + html + '</div></div></div>';
+    var o = qs('#modalRoot .nx-overlay'); o.classList.add('is-open');
+    var f = qs('input, select, textarea', o); if (f) f.focus();
+    return o;
+  }
+  function closeModal() {
+    var o = qs('#modalRoot .nx-overlay');
+    if (o) { o.classList.remove('is-open'); setTimeout(function () { qs('#modalRoot').innerHTML = ''; }, 250); }
+  }
+
+  function fieldHtml(f) {
+    var id = 'f_' + f.key;
+    var label = '<label class="nx-field__label" for="' + id + '">' + esc(f.label) + (f.required ? ' <span class="nx-field__required">*</span>' : '') + '</label>';
+    var c = '';
+    if (f.type === 'textarea') c = '<textarea id="' + id + '" class="nx-textarea"></textarea>';
+    else if (f.type === 'select') c = '<select id="' + id + '" class="nx-select">' + (f.options || []).map(function (o) { return '<option>' + esc(o) + '</option>'; }).join('') + '</select>';
+    else if (f.type === 'datetime') c = '<input id="' + id + '" class="nx-input" type="datetime-local">';
+    else if (f.type === 'number') c = '<input id="' + id + '" class="nx-input" type="number" min="0" placeholder="' + esc(f.placeholder || '') + '">';
+    else if (f.type === 'checkbox') c = '<label class="nx-check"><input id="' + id + '" type="checkbox"' + (f.checked ? ' checked' : '') + '><span>' + esc(f.checkLabel || f.label) + '</span></label>';
+    else c = '<input id="' + id + '" class="nx-input" type="text" placeholder="' + esc(f.placeholder || '') + '">';
+    var extra = f.dynamic ? ' data-dynamic="1"' : '';
+    return '<div class="nx-field' + (f.hidden ? ' is-hidden' : '') + '" data-field="' + f.key + '"' + extra + '>' + label + c + '<div class="nx-field__error">' + esc(f.errorLabel || f.label) + ' is required.</div></div>';
+  }
+
+  /* Dynamic contact field: choosing Contact Type morphs the next field.
+     Shared by single-page forms and the stepped onboarding flow. */
+  function wireContactMorph(overlay) {
+    var ctSel = qs('#f_contactType', overlay);
+    if (!ctSel) return;
+    var applyContactType = function () {
+      var t = ctSel.value;
+      var wrap = qs('[data-field="contactValue"]', overlay);
+      if (!wrap) return;
+      var input = qs('#f_contactValue', overlay);
+      var label = qs('.nx-field__label', wrap);
+      if (t === 'Phone') { label.innerHTML = 'Phone Number'; input.type = 'tel'; input.placeholder = '+254 700 000 000'; }
+      else if (t === 'WhatsApp') { label.innerHTML = 'WhatsApp Number'; input.type = 'tel'; input.placeholder = '+254 700 000 000'; }
+      else if (t === 'Email') { label.innerHTML = 'Email Address'; input.type = 'email'; input.placeholder = 'owner@business.com'; }
+      else if (t === 'Socials') { label.innerHTML = 'Social Handle / URL'; input.type = 'text'; input.placeholder = '@business or profile link'; }
+      wrap.classList.remove('is-hidden');
+    };
+    ctSel.addEventListener('change', applyContactType);
+    applyContactType();
+  }
+
+  function openForm(config) {
+    var sections = config.sections || [{ fields: config.fields || [] }];
+    var body = sections.map(function (sec) {
+      return sec.title ? '<div class="nx-section-block"><div class="nx-section-block__title">' + esc(sec.title) + '</div>' + sec.fields.map(fieldHtml).join('') + '</div>' : sec.fields.map(fieldHtml).join('');
+    }).join('');
+
+        var needsHost = config.needsHost !== false && !SP.hostId;
+    if (needsHost) {
+      body = '<div class="nx-section-block"><div class="nx-section-block__title">Choose a host</div>' +
+        '<div class="nx-field" data-field="_host"><label class="nx-field__label" for="f__host">Host <span class="nx-field__required">*</span></label>' +
+        '<select id="f__host" class="nx-select"></select><div class="nx-field__error">Pick a host to attach this action to.</div></div></div>' + body;
+    }
+
+    var overlay = openModal(
+      '<div class="nx-modal__header"><div><h2 class="nx-modal__title">' + esc(config.title) + '</h2><div class="nx-modal__subtitle">' + esc(config.subtitle || '') + '</div></div>' +
+      '<button type="button" class="nx-button nx-button--ghost nx-button--icon" data-close-modal aria-label="Close"><span class="material-symbols-outlined">close</span></button></div>' +
+      '<div class="nx-modal__body">' + body + '</div>' +
+      '<div class="nx-modal__footer"><button type="button" class="nx-button nx-button--secondary" data-close-modal>Cancel</button>' +
+      '<button type="button" class="nx-button ' + (config.danger ? 'nx-button--danger' : 'nx-button--primary') + '" id="formSubmit" style="flex:1">' + esc(config.submitLabel || 'Save') + '</button></div>'
+    );
+
+    if (needsHost) {
+      var sel = qs('#f__host', overlay);
+      var hosts = (SP.boot && SP.boot.recentHosts) || [];
+      hosts.forEach(function (h) { var op = document.createElement('option'); op.value = h.hostId; op.textContent = h.hostName; sel.appendChild(op); });
+    }
+    if (config.onOpen) config.onOpen(overlay);
+
+    wireContactMorph(overlay);
+
+    qs('#formSubmit', overlay).addEventListener('click', function () {
+      var btn = qs('#formSubmit', overlay);
+      var values = {}; var valid = true; var all = [];
+      sections.forEach(function (s) { all = all.concat(s.fields); });
+
+      if (needsHost) {
+        var hv = qs('#f__host', overlay).value;
+        var hw = qs('#f__host', overlay).closest('.nx-field');
+        if (!hv) { valid = false; hw.classList.add('is-invalid'); } else hw.classList.remove('is-invalid');
+        values._host = hv;
+      }
+
+      all.forEach(function (f) {
+        var el = qs('#f_' + f.key, overlay);
+        if (!el) return;
+        var wrap = el.closest('.nx-field');
+        if (wrap && wrap.classList.contains('is-hidden')) return; // skip hidden dynamic fields
+        var v = el.type === 'checkbox' ? el.checked : el.value.trim();
+        if (f.type === 'datetime' && v) v = new Date(v).toISOString();
+        values[f.key] = v;
+        if (f.required && !v) { valid = false; if (wrap) wrap.classList.add('is-invalid'); }
+        else if (wrap) wrap.classList.remove('is-invalid');
+      });
+      if (!valid) return;
+
+      var finish = withCheck(btn, function () {
+        var payload = config.payload ? config.payload(values) : values;
+        if (needsHost && payload) payload.hostId = values._host;
+        api(config.route, payload, function () {
+          toast('success', config.successTitle || 'Saved', config.successMessage || '');
+          closeModal();
+          SP.afterAction();
+        }, function (m) { btn.classList.remove('is-success'); btn.disabled = false; onFail(m); });
+      });
+      finish();
+    });
+  }
+
+  /* Progressive stepped form: one server round-trip, values carried across steps.
+     config.steps = [{ title, fields }]. Only the final step submits. */
+  function openSteppedForm(config) {
+    var steps = config.steps || [{ fields: [] }];
+    var idx = 0;
+    var saved = {};
+
+    function collectVisible(overlay, fields) {
+      fields.forEach(function (f) {
+        var el = qs('#f_' + f.key, overlay);
+        if (!el) return;
+        var wrap = el.closest('.nx-field');
+        if (wrap && wrap.classList.contains('is-hidden')) return;
+        var v = el.value.trim();
+        if (f.type === 'datetime' && v) v = new Date(v).toISOString();
+        saved[f.key] = v;
+      });
+    }
+
+    function validateVisible(overlay, fields) {
+      var valid = true;
+      fields.forEach(function (f) {
+        if (!f.required) return;
+        var el = qs('#f_' + f.key, overlay);
+        if (!el) return;
+        var wrap = el.closest('.nx-field');
+        if (wrap && wrap.classList.contains('is-hidden')) return;
+        if (!el.value.trim()) { valid = false; if (wrap) wrap.classList.add('is-invalid'); }
+        else if (wrap) wrap.classList.remove('is-invalid');
+      });
+      return valid;
+    }
+
+    function dots() {
+      var s = '<div class="nx-stepdots__label">Step ' + (idx + 1) + ' of ' + steps.length +
+        (steps[idx].title ? ' — ' + esc(steps[idx].title) : '') + '</div><div class="nx-stepdots" aria-hidden="true">';
+      for (var i = 0; i < steps.length; i++) {
+        s += '<div class="nx-stepdots__dot' + (i < idx ? ' is-done' : i === idx ? ' is-current' : '') + '"></div>';
+      }
+      return s + '</div>';
+    }
+
+    var overlay = openModal(
+      '<div class="nx-modal__header"><div><h2 class="nx-modal__title">' + esc(config.title) + '</h2><div class="nx-modal__subtitle">' + esc(config.subtitle || '') + '</div></div>' +
+      '<button type="button" class="nx-button nx-button--ghost nx-button--icon" data-close-modal aria-label="Close"><span class="material-symbols-outlined">close</span></button></div>' +
+      '<div class="nx-modal__body" id="stepBody"></div>' +
+      '<div class="nx-modal__footer"><button type="button" class="nx-button nx-button--secondary" data-close-modal>Cancel</button>' +
+      '<button type="button" class="nx-button nx-button--secondary" id="stepBack" hidden>Back</button>' +
+      '<button type="button" class="nx-button nx-button--primary" id="stepNext" style="flex:1">Continue</button></div>'
+    );
+    if (config.onOpen) config.onOpen(overlay);
+    // Restore any saved values into freshly rendered fields (Back navigation).
+    function restore(ov, fields) {
+      fields.forEach(function (f) {
+        if (!(f.key in saved)) return;
+        var el = qs('#f_' + f.key, ov);
+        if (el) el.value = saved[f.key];
+      });
+    }
+
+    function renderStep() {
+      var body = qs('#stepBody', overlay);
+      body.innerHTML = dots() + steps[idx].fields.map(fieldHtml).join('');
+      restore(overlay, steps[idx].fields);
+      wireContactMorph(overlay);
+      qs('#stepBack', overlay).hidden = idx === 0;
+      qs('#stepNext', overlay).textContent = idx === steps.length - 1 ? (config.submitLabel || 'Save') : 'Continue';
+    }
+
+    qs('#stepBack', overlay).addEventListener('click', function () {
+      collectVisible(overlay, steps[idx].fields);
+      if (idx > 0) { idx--; renderStep(); }
+    });
+
+    qs('#stepNext', overlay).addEventListener('click', function () {
+      var btn = qs('#stepNext', overlay);
+      if (!validateVisible(overlay, steps[idx].fields)) return;
+      collectVisible(overlay, steps[idx].fields);
+      if (idx < steps.length - 1) { idx++; renderStep(); return; }
+
+      var finish = withCheck(btn, function () {
+        var payload = config.payload ? config.payload(saved) : saved;
+        api(config.route, payload, function () {
+          toast('success', config.successTitle || 'Saved', config.successMessage || '');
+          closeModal();
+          SP.afterAction();
+        }, function (m) { btn.classList.remove('is-success'); btn.disabled = false; onFail(m); });
+      });
+      finish();
+    });
+
+    renderStep();
+  }
+
+  function withCheck(btn, done) {
+    btn.classList.add('is-loading'); btn.disabled = true;
+    return function () {
+      btn.classList.remove('is-loading'); btn.classList.add('is-success');
+      btn.innerHTML = '<span class="material-symbols-outlined">check</span>';
+      setTimeout(done, 350);
+    };
+  }
+
+  function enterView(id, title, renderBody) {
+    openModal(
+      '<div class="nx-modal__header"><div><h2 class="nx-modal__title">' + esc(title) + '</h2></div>' +
+      '<button type="button" class="nx-button nx-button--ghost nx-button--icon" data-close-modal aria-label="Close"><span class="material-symbols-outlined">close</span></button></div>' +
+      '<div class="nx-modal__body" id="enterBody">' + skeleton(2) + '</div>'
+    );
+    renderBody(qs('#enterBody'));
+  }
+
+  /* ---------- Workflow forms (New Host now has a dynamic contactValue field) ---------- */
+  function workflowForms() {
+    return {
+      logCall: { title: 'Log Call', needsHost: true, fields: [
+        { key: 'outcome', label: 'Outcome', type: 'select', options: OUTCOMES, required: true },
+        { key: 'notes', label: 'Notes', type: 'textarea' },
+        { key: 'nextFollowUpAt', label: 'Next Follow-up (optional)', type: 'datetime' }],
+        route: 'workflow.logCall', payload: function (v) { return v; }, successTitle: 'Call logged' },
+      scheduleMeeting: { title: 'Schedule Meeting', needsHost: true, fields: [
+        { key: 'title', label: 'Title', required: true },
+        { key: 'scheduledAt', label: 'Date & Time', type: 'datetime', required: true },
+        { key: 'mode', label: 'Mode', type: 'select', options: ['On-site', 'Phone', 'Video', 'Office'] },
+        { key: 'location', label: 'Location' },
+        { key: 'notes', label: 'Notes', type: 'textarea' },
+        { key: 'sendConfirm', label: 'Confirmation Email', type: 'checkbox', checked: true, checkLabel: 'Send confirmation + 24h reminder' }],
+        route: 'workflow.scheduleMeeting', payload: function (v) { return v; }, successTitle: 'Meeting scheduled' },
+      completeMeeting: { title: 'Log Meeting', needsHost: false, fields: [
+        { key: 'meetingId', label: 'Meeting', type: 'select', options: [], required: true },
+        { key: 'outcome', label: 'Outcome', required: true },
+        { key: 'notes', label: 'Minutes', type: 'textarea' },
+        { key: 'sendRecap', label: 'Follow-up Email', type: 'checkbox', checked: true, checkLabel: 'Send thank-you recap' }],
+        route: 'workflow.completeMeeting',
+        onOpen: function (o) { var sel = qs('#f_meetingId', o); (SP.ws ? SP.ws.meetings : []).forEach(function (m) { if (/Scheduled|Confirmed|Rescheduled/.test(m.status)) { var op = document.createElement('option'); op.value = m.meetingId; op.textContent = fmtDate(m.scheduledAt) + ' — ' + m.title; sel.appendChild(op); } }); },
+        successTitle: 'Meeting completed' },
+      sendEmail: { title: 'Send Email', needsHost: true, fields: [
+        { key: 'templateId', label: 'Template', type: 'select', options: [] },
+        { key: 'recipient', label: 'Recipient' },
+        { key: 'subject', label: 'Subject (optional with template)' },
+        { key: 'body', label: 'Message (required for custom message)', type: 'textarea' }],
+        route: 'workflow.sendEmail',
+        onOpen: function (o) {
+          var sel = qs('#f_templateId', o);
+          var empty = document.createElement('option'); empty.value = ''; empty.textContent = 'Custom message'; sel.appendChild(empty);
+          var catalog = (SP.boot && SP.boot.emailTemplates) || [];
+          catalog.forEach(function (t) { var op = document.createElement('option'); op.value = t.key; op.textContent = t.label; sel.appendChild(op); });
+          var host = SP.ws ? SP.ws.host : {};
+          var rec = qs('#f_recipient', o); if (rec && !rec.value) rec.value = host.email || '';
+          var vars = document.createElement('div'); vars.id = 'tplVars';
+          sel.parentNode.appendChild(vars);
+          var prefill = { contact_person: host.contactPerson || '', host_name: host.hostName || '', property_name: host.propertyName || host.hostName || '', sales_rep: host.owner || '' };
+          var big = { meeting_purpose: 1, proposal_summary: 1, follow_up_message: 1, meeting_summary: 1, next_steps: 1, onboarding_next_step: 1 };
+          var renderVars = function () {
+            vars.innerHTML = '';
+            var found = null;
+            catalog.forEach(function (t) { if (t.key === sel.value) found = t; });
+            if (!found) return;
+            found.variables.forEach(function (v) {
+              var wrap = document.createElement('div'); wrap.className = 'nx-field'; wrap.setAttribute('data-tplvar', v.key);
+              wrap.innerHTML = '<label class="nx-field__label">' + esc(v.label) + '</label>';
+              var inp = document.createElement(big[v.key] ? 'textarea' : 'input');
+              inp.className = big[v.key] ? 'nx-textarea' : 'nx-input'; inp.id = 'tv_' + v.key;
+              if (prefill[v.key]) inp.value = prefill[v.key];
+              wrap.appendChild(inp); vars.appendChild(wrap);
+            });
+          };
+          sel.addEventListener('change', renderVars);
+          if (SP.pendingTemplate) { sel.value = SP.pendingTemplate; SP.pendingTemplate = null; }
+          renderVars();
+        },
+        payload: function (v) {
+          if (!v.recipient && SP.ws) v.recipient = SP.ws.host.email;
+          v.data = v.data || {};
+          qsa('#tplVars [data-tplvar]').forEach(function (w) {
+            var k = w.getAttribute('data-tplvar');
+            var el = qs('#tv_' + k);
+            if (el) v.data[k] = el.value.trim();
+          });
+          return v;
+        }, successTitle: 'Email queued' },
+      scheduleFollowUp: { title: 'Schedule Follow-up', needsHost: true, fields: [
+        { key: 'dueAt', label: 'Due', type: 'datetime', required: true },
+        { key: 'notes', label: 'Reminder', type: 'textarea' }],
+        route: 'workflow.scheduleFollowUp', payload: function (v) { return v; }, successTitle: 'Follow-up scheduled' },
+      addNote: { title: 'Add Note', needsHost: true, fields: [{ key: 'notes', label: 'Note', type: 'textarea', required: true }],
+        route: 'workflow.addNote', payload: function (v) { return v; }, successTitle: 'Note added' },
+      advanceStage: { title: 'Advance Stage', needsHost: true, fields: [
+        { key: 'toStage', label: 'Move to', type: 'select', options: [], required: true },
+        { key: 'notes', label: 'Reason', type: 'textarea' }],
+        route: 'workflow.advanceStage',
+        onOpen: function (o) { var sel = qs('#f_toStage', o); SP.boot.stages.forEach(function (s) { var op = document.createElement('option'); op.value = s.key; op.textContent = s.label; sel.appendChild(op); }); if (SP.ws) sel.value = SP.boot.stages[Math.min(stageIndex(SP.ws.host.stage) + 1, SP.boot.stages.length - 1)].key; },
+        payload: function (v) { return v; }, successTitle: 'Stage advanced' },
+      scheduleOnboarding: { title: 'Schedule Onboarding Step', needsHost: true, fields: [
+        { key: 'step', label: 'Step', type: 'select', options: ONBOARDING_STEPS, required: true },
+        { key: 'dueAt', label: 'Due', type: 'datetime' },
+        { key: 'notes', label: 'Notes', type: 'textarea' }],
+        route: 'workflow.scheduleOnboardingStep', payload: function (v) { return v; }, successTitle: 'Step scheduled' },
+      createField: { title: 'Create Dynamic Field', needsHost: false, fields: [
+        { key: 'label', label: 'Label', required: true },
+        { key: 'key', label: 'Key', required: true },
+        { key: 'type', label: 'Type', type: 'select', options: ['text', 'textarea', 'number', 'phone', 'email', 'date', 'checkbox', 'dropdown'] },
+        { key: 'section', label: 'Section', type: 'select', options: ['initial', 'discovery', 'proposal', 'contract', 'onboarding'] },
+        { key: 'required', label: 'Required (true/false)' }],
+        route: 'workflow.createField', payload: function (v) { v.required = String(v.required).toLowerCase() === 'true'; return v; }, successTitle: 'Field created' }
+    };
+  }
+
+  /* ---------- Pinned header (no stars on My Work) ---------- */
+  function pinnedHeader() {
+    if (!SP.hostId || !SP.ws) {
+      return '';
+    }
+    var h = SP.ws.host;
+    return '<div class="nx-pinned">' +
+      '<button class="nx-pinned__back" data-action="clear-host"><span class="material-symbols-outlined" style="font-size:16px">arrow_back</span> All hosts</button>' +
+      '<div class="nx-pinned__name">' + esc(h.hostName) + '</div>' +
+      '<div class="nx-pinned__meta">' +
+        '<span>' + chip(stageLabel(h.stage)) + '</span>' +
+        '<span>Last contact <b>' + fmtDate(h.lastContactAt) + '</b></span>' +
+        '<span>Next action <b>' + fmtDate(h.nextFollowUpAt) + '</b></span>' +
+        '<span>Owner <b>' + esc(h.owner || '-') + '</b></span>' +
+        '<span>' + esc(h.phone || h.email || '') + '</span>' +
+      '</div></div>';
+  }
+
+  /* ---------- Journey ---------- */
+  function journeyCard() {
+    if (!SP.hostId || !SP.ws) return '';
+    var current = SP.ws.host.stage;
+    var frameStage = SP.stageFrame || current;
+    var idx = stageIndex(current);
+    var fIdx = stageIndex(frameStage);
+
+    var steps = '';
+    SP.boot.stages.forEach(function (s, i) {
+      steps += '<button class="nx-journey2__step ' + (i < idx ? 'is-completed' : i === idx ? 'is-current' : '') + '" data-action="frame-stage" data-stage="' + esc(s.key) + '">' +
+        '<span class="nx-journey2__dot"><span class="material-symbols-outlined">' + (i < idx ? 'check' : i === idx ? 'flag' : 'circle') + '</span></span>' +
+        '<span class="nx-journey2__label">' + esc(s.label) + '</span></button>';
+      if (i < SP.boot.stages.length - 1) steps += '<div class="nx-journey2__line' + (i < idx ? ' is-complete' : '') + '"></div>';
+    });
+
+    var reqs = STAGE_REQUIREMENTS[frameStage] || [];
+    var done = fIdx <= idx;
+    var checklist = reqs.map(function (r) {
+      return '<div class="nx-checklist__item ' + (done ? 'is-done' : 'is-pending') + '"><span class="material-symbols-outlined">' + (done ? 'check_circle' : 'radio_button_unchecked') + '</span>' + esc(r) + '</div>';
+    }).join('') || '<div class="nx-text-muted nx-text-small">No checklist defined for this stage.</div>';
+
+    var advanceBtn = (fIdx === idx + 1) ? '<button class="nx-button nx-button--primary" data-action="form" data-form="advanceStage" data-preset="' + esc(frameStage) + '">Advance to ' + esc(stageLabel(frameStage)) + '</button>' : '';
+
+    var frame = '<div class="nx-stage-frame"><div class="nx-stage-frame__title">' + esc(stageLabel(frameStage)) + ' — Requirements</div>' +
+      '<div class="nx-checklist">' + checklist + '</div>' +
+      (advanceBtn ? '<div class="nx-mt-2">' + advanceBtn + '</div>' : '') + '</div>';
+
+    return card('journey', 'Journey', stageLabel(current), '<div class="nx-journey2">' + steps + '</div>' + frame, { enter: true });
+  }
+
+  /* ---------- Action cards ---------- */
+  function actionCards() {
+    var items = [
+      ['logCall', 'call', 'Log Call'], ['scheduleMeeting', 'event', 'Meeting'], ['sendEmail', 'mail', 'Email'],
+      ['scheduleFollowUp', 'alarm', 'Follow-up'], ['scheduleOnboarding', 'assignment', 'Onboarding'],
+      ['addNote', 'edit_note', 'Note'], ['advanceStage', 'flag', 'Advance Stage']
+    ];
+    var html = '<div class="nx-action-grid">';
+    items.forEach(function (it) {
+      html += '<button class="nx-action-card" data-action="form" data-form="' + it[0] + '"><span class="material-symbols-outlined">' + it[1] + '</span><span class="lbl">' + it[2] + '</span></button>';
+    });
+    return html + '</div>';
+  }
+
+  function hostItem(h) {
+    return '<button class="nx-host-item" data-action="select-host" data-id="' + esc(h.hostId) + '"><span class="nx-host-item__title">' + esc(h.hostName) + '</span>' +
+      '<span class="nx-host-item__meta">' + chip(stageLabel(h.stage)) + chip(h.lifecycleStatus || 'Active', 'success') + '</span>' +
+      '<span class="nx-host-item__contact">' + esc(h.phone || h.email || 'No contact') + '</span></button>';
+  }
+
+  /* ---------- Render ---------- */
+  function render() {
+    qsa('#tabBar button').forEach(function (b) { b.classList.toggle('is-active', b.getAttribute('data-tab') === SP.tab); });
+    var c = qs('#tabContent');
+    if (SP.tab === 'today') return renderToday(c);
+    if (SP.tab === 'pipeline') return renderPipeline(c);
+    return renderSettings(c);
+  }
+
+  function renderToday(c) {
+    var html = pinnedHeader();
+
+    if (SP.hostId) {
+      html += '<div id="cockpit">' + skeleton(3) + '</div>';
+      c.innerHTML = html;
+      getCached('ws:' + SP.hostId, 'panel.workspace', { hostId: SP.hostId }, function (res) {
+        SP.ws = res.data;
+        var k = qs('#cockpit'); if (!k) return;
+        var out = '';
+        out += journeyCard();
+        out += card('actions', 'Quick Actions', '', actionCards());
+        out += card('comms', 'Communication', '', commsHtml(res.data), { enter: true });
+        out += card('emailcenter', 'Email Center', 'templates & log', '<div id="ecBody">' + skeleton(1) + '</div>', { enter: true });
+        out += card('upcoming', 'Upcoming', '', upcomingHtml(res.data) || emptyState('event', 'Nothing upcoming', 'No meetings or follow-ups.', 'Schedule Meeting', 'data-action="form" data-form="scheduleMeeting"'), { enter: true });
+        out += card('timeline', 'Recent Activity', res.data.activities.length + ' events', timelineHtml(res.data.activities), { enter: true });
+        k.innerHTML = out;
+        var pin = qs('.nx-pinned'); if (pin) pin.outerHTML = pinnedHeader();
+        ecLoadInto('#ecBody');
+      }, function (m) { qs('#cockpit').innerHTML = errorState(m, 'today'); });
+      return;
+    }
+
+    html += card('today', 'Today', '', '<div id="todayMetrics">' + skeleton(1) + '</div>');
+    html += card('qa', 'Quick Actions', 'Select a host to enable actions', actionCards());
+    html += card('emailcenter', 'Email Center', 'templates, queue & log', '<div id="ecBodyNoHost">' + skeleton(1) + '</div>', { enter: true });
+    html += '<div class="nx-grid nx-stack"><div class="nx-col-6">' + card('recent', 'Recent Hosts', '', '<div id="recentHosts">' + skeleton(2) + '</div>') + '</div>' +
+      '<div class="nx-col-6">' + card('pinnedHosts', 'Pinned Hosts', '', '<div id="pinnedHosts">' + skeleton(1) + '</div>') + '</div></div>';
+    c.innerHTML = html;
+    ecLoadInto('#ecBodyNoHost');
+
+    getBoot(function (res) {
+      var tm = qs('#todayMetrics');
+      if (tm) {
+        var fu = res.data.followUpCount || 0;
+        var td = res.data.today || {};
+        tm.innerHTML =
+          '<div class="nx-today-grid">' +
+            '<div class="nx-today-chip"><span class="v">' + fu + '</span><span class="k">Follow-ups due</span></div>' +
+            '<div class="nx-today-chip"><span class="v">' + (td.meetingsTodayCount || 0) + '</span><span class="k">Meetings today</span></div>' +
+            '<div class="nx-today-chip"><span class="v">–</span><span class="k">Proposals</span></div>' +
+            '<div class="nx-today-chip"><span class="v">' + (res.data.hostCount || 0) + '</span><span class="k">Total hosts</span></div>' +
+          '</div>';
+      }
+      var rh = qs('#recentHosts'); if (rh) rh.innerHTML = res.data.recentHosts.map(hostItem).join('') || emptyState('group_add', 'No hosts yet', 'Create your first lead.', 'New Host', 'data-action="new-host"');
+      var ph = qs('#pinnedHosts'); if (ph) ph.innerHTML = SP.pinned.length ? SP.pinned.map(function (p) { return '<div class="nx-queue-item"><span>' + esc(p) + '</span></div>'; }).join('') : '<div class="nx-text-muted nx-text-small">Pin a host from search.</div>';
+    });
+  }
+
+  function commsHtml(data) {
+    var lastCall = data.activities.find(function (a) { return a.type === 'call.logged'; });
+    var lastMeeting = data.activities.find(function (a) { return a.type === 'meeting.completed'; });
+    var lastEmail = data.emails[0];
+    var html = '<div class="nx-list">' +
+      '<div class="nx-list__row"><span class="nx-list__label">Last Call</span><span class="nx-list__value">' + (lastCall ? fmtDate(lastCall.createdAt) + ' • ' + esc(lastCall.outcome || '') : '-') + '</span></div>' +
+      '<div class="nx-list__row"><span class="nx-list__label">Last Meeting</span><span class="nx-list__value">' + (lastMeeting ? fmtDate(lastMeeting.createdAt) : '-') + '</span></div>' +
+      '<div class="nx-list__row"><span class="nx-list__label">Last Email</span><span class="nx-list__value">' + (lastEmail ? esc(lastEmail.status) + ' • ' + fmtDate(lastEmail.sentAt) : '-') + '</span></div></div>';
+    if (lastEmail && lastEmail.status === 'Sent') {
+      html += '<div class="nx-flex nx-gap-1 nx-mt-2">' +
+        chip(lastEmail.openedAt ? 'Opened' : 'Not opened', lastEmail.openedAt ? 'success' : 'warning') +
+        chip(lastEmail.clickedAt ? 'Clicked' : 'Not clicked', lastEmail.clickedAt ? 'success' : 'warning') +
+        chip(lastEmail.repliedAt ? 'Replied' : 'No reply', lastEmail.repliedAt ? 'success' : 'warning') + '</div>' +
+        '<div class="nx-flex nx-gap-1 nx-mt-2">' +
+        (!lastEmail.openedAt ? '<button class="nx-button nx-button--ghost" data-action="engagement" data-event="opened" data-id="' + esc(lastEmail.emailLogId) + '">Mark Opened</button>' : '') +
+        (!lastEmail.clickedAt ? '<button class="nx-button nx-button--ghost" data-action="engagement" data-event="clicked" data-id="' + esc(lastEmail.emailLogId) + '">Mark Clicked</button>' : '') +
+        (!lastEmail.repliedAt ? '<button class="nx-button nx-button--ghost" data-action="engagement" data-event="replied" data-id="' + esc(lastEmail.emailLogId) + '">Mark Replied</button>' : '') + '</div>';
+    }
+    return html;
+  }
+
+  function upcomingHtml(data) {
+    var items = '';
+    (data.followUps || []).forEach(function (f) {
+      items += '<div class="nx-queue-item"><div><strong>Follow-up</strong><div class="nx-text-muted nx-text-small">' + fmtDate(f.dueAt) + '</div></div>' +
+        '<button class="nx-button nx-button--secondary" data-action="complete-followup" data-id="' + esc(f.activityId) + '">Done</button></div>';
+    });
+    (data.meetings || []).forEach(function (m) {
+      if (/Scheduled|Confirmed|Rescheduled/.test(m.status)) items += '<div class="nx-queue-item"><div><strong>' + esc(m.title) + '</strong><div class="nx-text-muted nx-text-small">' + fmtDate(m.scheduledAt) + '</div></div>' + chip(m.status, 'info') + '</div>';
+    });
+    return items;
+  }
+
+  function timelineHtml(acts) {
+    if (!acts || !acts.length) return emptyState('timeline', 'No activity yet', 'Log a call or meeting to start the trail.');
+    var html = '<div class="nx-timeline">';
+    acts.forEach(function (a) {
+      html += '<div class="nx-timeline__item"><div class="nx-timeline__icon"><span class="material-symbols-outlined">' + iconFor(a.type) + '</span></div>' +
+        '<div><div class="nx-timeline__title">' + esc(a.subject || a.type) + '</div><div class="nx-timeline__meta">' + fmtDate(a.createdAt) + (a.outcome ? ' • ' + esc(a.outcome) : '') + '</div>' +
+        (a.notes ? '<div class="nx-text-small nx-mt-1">' + esc(a.notes) + '</div>' : '') + '</div></div>';
+    });
+    return html + '</div>';
+  }
+
+  /* ---------- Pipeline ---------- */
+  function renderPipeline(c) {
+    var html = pinnedHeader();
+    html += '<div id="pipeRoot">' + skeleton(2) + '</div>';
+    c.innerHTML = html;
+
+    getCached('ins', 'panel.insights', {}, function (res) {
+      var t = res.data.totals; var k = qs('#pipeRoot'); if (!k) return;
+      var out = '';
+      out += card('kpis', 'Performance', '', '<div class="nx-grid">' +
+        metric('Hosts', t.hosts) + metric('Live', t.live) + metric('Conversion', t.conversion + '%') + metric('Calls (7d)', t.callsThisWeek) + '</div>');
+
+      var max = 1; SP.boot.stages.forEach(function (s) { max = Math.max(max, res.data.stageCounts[s.key] || 0); });
+      var bars = '';
+      SP.boot.stages.forEach(function (s) {
+        var v = res.data.stageCounts[s.key] || 0;
+        bars += '<div class="nx-bar-row"><span class="nx-text-small">' + esc(s.label) + '</span><div class="nx-bar"><div style="width:' + Math.round((v / max) * 100) + '%"></div></div><span class="nx-text-small">' + v + '</span></div>';
+      });
+      out += card('pipeline', 'Pipeline', t.hosts + ' hosts', '<div style="display:grid;gap:8px">' + bars + '</div>', { enter: true });
+
+      out += card('response', 'Response Time', 'avg time to first contact', '<div class="nx-list"><div class="nx-list__row"><span class="nx-list__label">Avg first response</span><span class="nx-list__value">—</span></div><div class="nx-list__row"><span class="nx-list__label">Follow-up rate</span><span class="nx-list__value">—</span></div></div><div class="nx-text-muted nx-text-small nx-mt-1">Appears automatically once more activity is logged.</div>');
+      out += card('portfolio', 'Portfolio', 'units & buildings', emptyState('apartment', 'Portfolio', 'Add property data during Discovery to see portfolio metrics here.'));
+      out += card('emailana', 'Email Analytics', '', '<div class="nx-list"><div class="nx-list__row"><span class="nx-list__label">Sent</span><span class="nx-list__value">' + t.emailsSent + '</span></div><div class="nx-list__row"><span class="nx-list__label">Opened</span><span class="nx-list__value">' + t.emailsOpened + '</span></div><div class="nx-list__row"><span class="nx-list__label">Replied</span><span class="nx-list__value">' + t.emailsReplied + '</span></div></div>');
+      out += card('recs', 'Next Recommendations', '', '<div class="nx-list"><div class="nx-list__row"><span class="nx-list__label">Stale leads (>7d no contact)</span><span class="nx-list__value">—</span></div><div class="nx-list__row"><span class="nx-list__label">Overdue follow-ups</span><span class="nx-list__value">' + (SP.boot ? SP.boot.followUpCount : 0) + '</span></div></div><div class="nx-text-muted nx-text-small nx-mt-1">Smart recommendations unlock as pipeline data grows.</div>');
+
+      k.innerHTML = out;
+      var pin = qs('.nx-pinned'); if (pin) pin.outerHTML = pinnedHeader();
+    }, function (m) { qs('#pipeRoot').innerHTML = errorState(m, 'pipeline'); });
+  }
+
+  function metric(l, v) { return '<div class="nx-col-6"><div class="nx-card nx-card--metric"><div class="nx-card__body"><div class="nx-text-muted">' + esc(l) + '</div><div class="nx-card__value">' + esc(v) + '</div></div></div></div>'; }
+
+  /* ---------- Email Center (cards + full view) ---------- */
+  function ecSummaryHtml(d) {
+    var s = d.stats, q = d.queue;
+    return '<div class="nx-today-grid">' +
+      '<div class="nx-today-chip"><span class="v">' + q.pending + '</span><span class="k">Queued</span></div>' +
+      '<div class="nx-today-chip"><span class="v">' + s.sent + '</span><span class="k">Sent</span></div>' +
+      '<div class="nx-today-chip"><span class="v">' + s.failed + '</span><span class="k">Failed</span></div>' +
+      '<div class="nx-today-chip"><span class="v">' + d.templateCount + '</span><span class="k">Templates</span></div>' +
+      '</div>' + (d.testMode ? '<div class="nx-text-muted nx-text-small nx-mt-1">Test mode → ' + esc(d.testRecipient || 'unset') + '</div>' : '');
+  }
+
+  function ecLoadInto(sel) {
+    api('panel.emailCenter', {}, function (res) {
+      var k = qs(sel); if (!k) return;
+      k.innerHTML = ecSummaryHtml(res.data);
+    }, function (m) { var k = qs(sel); if (k) k.innerHTML = errorState(m, 'today'); });
+  }
+
+  var EC = { data: null, filter: '' };
+
+  function emailCenterFull(body) {
+    body.innerHTML = skeleton(3);
+    api('panel.emailCenter', {}, function (res) {
+      EC.data = res.data; EC.filter = '';
+      var d = res.data;
+      var html = ecSummaryHtml(d);
+      html += '<div class="nx-flex nx-gap-1" style="margin:10px 0"><button class="nx-button nx-button--primary" data-ec="compose" style="flex:1">Compose Email</button></div>';
+      html += '<div class="nx-flex nx-gap-1" id="ecFilters" style="margin-bottom:8px;flex-wrap:wrap"></div>';
+      if (can('email.send')) {
+        html += '<div class="nx-section-block" style="margin-bottom:12px"><div class="nx-section-block__title">Safety Switch</div>' +
+          '<label class="nx-check"><input id="ecTestMode" type="checkbox"' + (d.testMode ? ' checked' : '') + '><span>Test mode (redirect all sends)</span></label>' +
+          '<div class="nx-field" style="margin-top:8px" data-field="ecTestRecipient"><label class="nx-field__label" for="ecTestRecipient">Test recipient</label>' +
+          '<input id="ecTestRecipient" class="nx-input" type="text" value="' + esc(d.testRecipient || '') + '"></div>' +
+          '<button class="nx-button nx-button--secondary" data-ec="savesettings" style="width:100%">Save Settings</button></div>';
+      }
+      html += '<div class="nx-section-block" style="margin-bottom:12px"><div class="nx-section-block__title">Templates</div><div id="ecTpl">' + skeleton(1) + '</div></div>';
+      html += '<div class="nx-section-block"><div class="nx-section-block__title">Recent Sends</div><div id="ecLogs"></div></div>';
+      body.innerHTML = html;
+      renderEcFilters(body);
+      renderEcLogs(body);
+      var catalog = (SP.boot && SP.boot.emailTemplates) || [];
+      qs('#ecTpl', body).innerHTML = catalog.length ? catalog.map(function (t) {
+        return '<div class="nx-queue-item" style="margin-bottom:6px"><div><strong>' + esc(t.label) + '</strong>' +
+          '<div class="nx-text-muted nx-text-small">' + t.variables.length + ' fields</div></div>' +
+          '<div class="nx-flex nx-gap-1"><button class="nx-button nx-button--ghost" data-ec="preview" data-tpl="' + esc(t.key) + '">Preview</button>' +
+          '<button class="nx-button nx-button--secondary" data-ec="use" data-tpl="' + esc(t.key) + '">Use</button></div></div>';
+      }).join('') : '<div class="nx-text-muted nx-text-small">No templates registered.</div>';
+      qsa('[data-ec]', body).forEach(function (btn) {
+        // Filter chips + log rows are wired by their own renderers; skip them here.
+        var kind = btn.getAttribute('data-ec');
+        if (kind === 'filter' || kind === 'log') return;
+        btn.addEventListener('click', function () {
+          if (kind === 'compose') { var cfg = workflowForms().sendEmail; if (cfg) openForm(cfg); }
+          else if (kind === 'savesettings') ecSaveSettings(body);
+          else if (kind === 'preview') ecPreview(btn.getAttribute('data-tpl'));
+          else if (kind === 'use') { SP.pendingTemplate = btn.getAttribute('data-tpl'); var cfg2 = workflowForms().sendEmail; if (cfg2) openForm(cfg2); }
+        });
+      });
+    }, function (m) { body.innerHTML = errorState(m, 'today'); });
+  }
+
+  function renderEcFilters(body) {
+    var el = qs('#ecFilters', body);
+    if (!el) return;
+    var opts = ['', 'Queued', 'Sent', 'Failed'];
+    el.innerHTML = opts.map(function (s) {
+      var label = s === '' ? 'All' : s;
+      var on = EC.filter === s;
+      return '<button class="nx-chip' + (on ? ' nx-chip--primary' : '') + '" data-ec="filter" data-f="' + esc(s) + '" style="cursor:pointer;font:inherit;">' + esc(label) + '</button>';
+    }).join('');
+    qsa('[data-ec="filter"]', el).forEach(function (b) {
+      b.addEventListener('click', function () { EC.filter = b.getAttribute('data-f'); renderEcFilters(body); renderEcLogs(body); });
+    });
+  }
+
+  function renderEcLogs(body) {
+    var el = qs('#ecLogs', body);
+    if (!el || !EC.data) return;
+    var list = EC.data.logs.filter(function (l) { return !EC.filter || String(l.status) === EC.filter; });
+    el.innerHTML = list.length ? list.map(function (l) {
+      return '<button class="nx-queue-item" data-ec="log" data-id="' + esc(l.emailLogId) + '" style="margin-bottom:6px;width:100%;text-align:left;cursor:pointer;background:none;border:1px solid var(--nx-charcoal-2);border-radius:12px;color:inherit;font:inherit;padding:10px;"><div><strong>' + esc(l.subject || '(no subject)') + '</strong>' +
+        '<div class="nx-text-muted nx-text-small">' + esc(l.recipient) + ' • ' + fmtDate(l.sentAt || l.createdAt) + '</div></div>' +
+        chip(l.status, l.status === 'Sent' ? 'success' : l.status === 'Failed' ? 'danger' : 'warning') + '</button>';
+    }).join('') : '<div class="nx-text-muted nx-text-small">No sends match this filter.</div>';
+    qsa('[data-ec="log"]', el).forEach(function (b) {
+      b.addEventListener('click', function () { ecLogDetail(b.getAttribute('data-id')); });
+    });
+  }
+
+  function ecLogDetail(id) {
+    var found = null;
+    (EC.data.logs || []).forEach(function (l) { if (String(l.emailLogId) === String(id)) found = l; });
+    if (!found) { toast('error', 'Not found', 'That log entry is gone. Reload the center.'); return; }
+    var rows = [
+      ['Status', found.status], ['To', found.recipient], ['Template', found.templateId || '—'],
+      ['Queued', fmtDate(found.createdAt)], ['Sent', fmtDate(found.sentAt)],
+      ['Host', found.hostId || '—']
+    ];
+    if (found.failureReason) rows.push(['Failure', found.failureReason]);
+    openModal('<div class="nx-modal__header"><div><h2 class="nx-modal__title">' + esc(found.subject || '(no subject)') + '</h2>' +
+      '<div class="nx-modal__subtitle">Email log detail</div></div>' +
+      '<button type="button" class="nx-button nx-button--ghost nx-button--icon" data-close-modal aria-label="Close"><span class="material-symbols-outlined">close</span></button></div>' +
+      '<div class="nx-modal__body"><div class="nx-list">' + rows.map(function (r) {
+        return '<div class="nx-list__row"><span class="nx-list__label">' + esc(r[0]) + '</span><span class="nx-list__value">' + esc(r[1]) + '</span></div>';
+      }).join('') + '</div></div>' +
+      '<div class="nx-modal__footer"><button type="button" class="nx-button nx-button--secondary" data-close-modal>Close</button></div>');
+  }
+
+  function ecSaveSettings(body) {
+    var tm = qs('#ecTestMode', body);
+    var tr = qs('#ecTestRecipient', body);
+    api('panel.emailSaveSettings', {
+      testMode: tm ? tm.checked : false,
+      testRecipient: tr ? tr.value.trim() : ''
+    }, function () { toast('success', 'Settings saved'); emailCenterFull(body); },
+    function (m) { onFail(m); });
+  }
+
+  function ecPreview(key) {
+    api('panel.emailPreview', { templateId: key, data: {} }, function (res) {
+      openModal('<div class="nx-modal__header"><div><h2 class="nx-modal__title">' + esc(key) + '</h2><div class="nx-modal__subtitle">' + esc(res.data.subject || '') + '</div></div>' +
+        '<button type="button" class="nx-button nx-button--ghost nx-button--icon" data-close-modal aria-label="Close"><span class="material-symbols-outlined">close</span></button></div>' +
+        '<div class="nx-modal__body"><div style="background:#fff;border-radius:12px;padding:6px;overflow:auto;">' + res.data.body + '</div></div>' +
+        '<div class="nx-modal__footer"><button type="button" class="nx-button nx-button--secondary" data-close-modal>Close</button></div>');
+    });
+  }
+
+  /* ---------- Settings (trimmed per request) ---------- */
+  function renderSettings(c) {
+    var html = pinnedHeader();
+    var admin = can('settings.edit');
+    html += card('automation', 'Automation', 'rules & triggers', emptyState('bolt', 'Automation', 'Define automation rules in Phase 2 (Contract 5).'));
+    html += card('users', 'Users', 'team & roles', '<div class="nx-list"><div class="nx-list__row"><span class="nx-list__label">Signed in as</span><span class="nx-list__value">' + esc(SP.boot ? SP.boot.user : '-') + '</span></div><div class="nx-list__row"><span class="nx-list__label">Permissions</span><span class="nx-list__value">' + (SP.boot ? SP.boot.permissions.length : 0) + '</span></div></div>');
+    c.innerHTML = html;
+  }
+
+  /* ---------- Search ---------- */
+  var searchTimer = null;
+  var searchActive = -1;
+  function searchItems() { return qsa('.nx-search-item', qs('#searchResults')); }
+  function searchSetActive(i) {
+    var list = searchItems();
+    if (!list.length) { searchActive = -1; return; }
+    searchActive = (i + list.length) % list.length;
+    list.forEach(function (el, j) {
+      var on = j === searchActive;
+      el.classList.toggle('is-active', on);
+      if (on) { el.setAttribute('aria-selected', 'true'); if (el.scrollIntoView) el.scrollIntoView({ block: 'nearest' }); }
+      else el.removeAttribute('aria-selected');
+    });
+  }
+  function bindSearch() {
+    var input = qs('#globalSearch'); var box = qs('#searchResults');
+    input.setAttribute('role', 'combobox');
+    input.setAttribute('aria-expanded', 'false');
+    input.setAttribute('aria-controls', 'searchResults');
+    box.setAttribute('role', 'listbox');
+    var showBox = function (html) { box.innerHTML = html; box.hidden = false; searchActive = -1; input.setAttribute('aria-expanded', 'true'); };
+    var hideBox = function () { box.hidden = true; searchActive = -1; input.setAttribute('aria-expanded', 'false'); };
+    input.addEventListener('focus', function () {
+      if (!input.value.trim()) {
+        var recent = SP.pinned.length ? '<div class="nx-search-group">Pinned</div>' + SP.pinned.map(function (p) { return '<button class="nx-search-item" role="option" data-action="run-pinned" data-query="' + esc(p) + '"><span>' + esc(p) + '</span>' + chip('pinned', 'info') + '</button>'; }).join('') : '<div class="nx-search-group">Type to search hosts, calls, meetings, emails…</div>';
+        showBox(recent);
+      }
+    });
+    input.addEventListener('input', function () {
+      clearTimeout(searchTimer);
+      var q = input.value.trim();
+      if (q.length < 2) { hideBox(); return; }
+      searchTimer = setTimeout(function () {
+        api('panel.search', { query: q }, function (res) {
+          var d = res.data; var html = '<div class="nx-search-group nx-flex nx-flex--between">Results <button class="nx-button nx-button--ghost" data-action="pin" data-query="' + esc(q) + '">Pin</button></div>';
+          if (d.hosts.length) { html += '<div class="nx-search-group">Hosts</div>'; d.hosts.forEach(function (h) { html += '<button class="nx-search-item" role="option" data-action="select-host" data-id="' + esc(h.hostId) + '"><span>' + esc(h.hostName) + '</span>' + chip(stageLabel(h.stage)) + '</button>'; }); }
+          if (d.activities.length) { html += '<div class="nx-search-group">Activities</div>'; d.activities.forEach(function (a) { html += '<button class="nx-search-item" role="option" data-action="select-host" data-id="' + esc(a.hostId) + '"><span>' + esc(a.subject || a.type) + '</span><span class="nx-text-muted nx-text-small">' + fmtDate(a.createdAt) + '</span></button>'; }); }
+          if (d.meetings.length) { html += '<div class="nx-search-group">Meetings</div>'; d.meetings.forEach(function (m) { html += '<button class="nx-search-item" role="option" data-action="select-host" data-id="' + esc(m.hostId) + '"><span>' + esc(m.title) + '</span><span class="nx-text-muted nx-text-small">' + fmtDate(m.scheduledAt) + '</span></button>'; }); }
+          if (d.emails.length) { html += '<div class="nx-search-group">Emails</div>'; d.emails.forEach(function (m) { html += '<button class="nx-search-item" role="option" data-action="select-host" data-id="' + esc(m.hostId) + '"><span>' + esc(m.subject) + '</span><span class="nx-text-muted nx-text-small">' + esc(m.status) + '</span></button>'; }); }
+          if (!d.hosts.length && !d.activities.length && !d.meetings.length && !d.emails.length) html += '<div class="nx-search-group">No results for "' + esc(q) + '"</div>';
+          showBox(html);
+        });
+      }, 350);
+    });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { hideBox(); return; }
+      if (box.hidden) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); searchSetActive(searchActive + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); searchSetActive(searchActive - 1); }
+      else if (e.key === 'Enter') {
+        var list = searchItems();
+        if (searchActive >= 0 && list[searchActive]) { e.preventDefault(); list[searchActive].click(); }
+      }
+    });
+    document.addEventListener('click', function (e) { if (!e.target.closest('.nx-search-wrap')) hideBox(); });
+  }
+
+  /* ---------- Bindings ---------- */
+  function updateBadge() { var b = qs('#notifBadge'); if (!b) return; var n = SP.boot ? SP.boot.followUpCount : 0; b.hidden = !n; b.textContent = n; }
+
+  function bindGlobal() {
+    qsa('#tabBar button').forEach(function (b) { b.addEventListener('click', function () { SP.tab = b.getAttribute('data-tab'); SP.stageFrame = null; render(); }); });
+    qs('#btnNewHost').addEventListener('click', openNewHost);
+    qs('#btnAccount').addEventListener('click', function () { toast('info', 'Signed in', (SP.boot ? SP.boot.user : '')); });
+
+    window.addEventListener('offline', function () { qs('#offlineBanner').classList.add('is-visible'); });
+    window.addEventListener('online', function () { qs('#offlineBanner').classList.remove('is-visible'); SP.afterAction(); });
+
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('[data-close-modal]')) { closeModal(); return; }
+
+      // Enter icon inside a card header: open full view, don't toggle.
+      var enterEl = e.target.closest('[data-action="enter"]');
+      if (enterEl) {
+        e.stopPropagation();
+        var eid = enterEl.getAttribute('data-id');
+        var titles = { comms: 'Communication', upcoming: 'Upcoming', timeline: 'Recent Activity', pipeline: 'Pipeline', journey: 'Journey' };
+                var titles = { comms: 'Communication', upcoming: 'Upcoming', timeline: 'Recent Activity', pipeline: 'Pipeline', journey: 'Journey', actions: 'Quick Actions', today: 'Today', recent: 'Recent Hosts', pinnedHosts: 'Pinned Hosts', qa: 'Quick Actions', emailcenter: 'Email Center' };
+        enterView(eid, titles[eid] || eid, function (body) {
+          if (eid === 'timeline' && SP.ws) body.innerHTML = timelineHtml(SP.ws.activities);
+          else if (eid === 'emailcenter') emailCenterFull(body);
+          else if (eid === 'comms' && SP.ws) body.innerHTML = commsHtml(SP.ws);
+          else if (eid === 'upcoming' && SP.ws) body.innerHTML = upcomingHtml(SP.ws) || emptyState('event', 'Nothing upcoming');
+          else if (eid === 'journey' && SP.ws) body.innerHTML = journeyCardBody();
+          else if (eid === 'actions' || eid === 'qa') body.innerHTML = actionCards();
+          else if (eid === 'today') body.innerHTML = qs('#todayMetrics') ? qs('#todayMetrics').innerHTML : skeleton(1);
+          else if (eid === 'recent') body.innerHTML = qs('#recentHosts') ? qs('#recentHosts').innerHTML : skeleton(2);
+          else if (eid === 'pinnedHosts') body.innerHTML = qs('#pinnedHosts') ? qs('#pinnedHosts').innerHTML : '<div class="nx-text-muted nx-text-small">Pin a host from search.</div>';
+          else body.innerHTML = '<div class="nx-text-muted">Full view for this card renders its expanded content.</div>';
+
+          // Re-bind action buttons inside the entered view so they still work.
+          body.querySelectorAll('[data-action="form"]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              var cfg = workflowForms()[btn.getAttribute('data-form')];
+              if (cfg) openForm(cfg);
+            });
+          });
+        });
+        return;
+      }
+
+      var el = e.target.closest('[data-action]');
+      if (!el) return;
+      var action = el.getAttribute('data-action');
+      var id = el.getAttribute('data-id');
+
+      if (action === 'toggle') {
+        var cardEl = el.closest('.nx-card2');
+        if (cardEl) {
+          SP.collapsed[id] = !SP.collapsed[id];
+          cardEl.classList.toggle('is-collapsed', SP.collapsed[id]);
+          el.setAttribute('aria-expanded', String(!SP.collapsed[id]));
+          var chev = el.querySelector('.nx-card2__chevron .material-symbols-outlined');
+          if (chev) chev.textContent = SP.collapsed[id] ? 'expand_more' : 'expand_less';
+        }
+      }
+      else if (action === 'retry') { invalidateCache(); SP.tab = el.getAttribute('data-tab') || SP.tab; render(); }
+      else if (action === 'tab') { SP.tab = el.getAttribute('data-tab'); render(); }
+      else if (action === 'new-host') { openNewHost(); }
+      else if (action === 'select-host') { SP.hostId = id; SP.stageFrame = null; SP.tab = 'today'; qs('#searchResults').hidden = true; invalidateCache(); render(); }
+      else if (action === 'clear-host') { SP.hostId = null; SP.ws = null; SP.stageFrame = null; invalidateCache(); render(); }
+      else if (action === 'frame-stage') { SP.stageFrame = el.getAttribute('data-stage'); render(); }
+      else if (action === 'form') {
+        var cfg = workflowForms()[el.getAttribute('data-form')];
+        if (cfg) {
+          if (el.getAttribute('data-preset')) { var preset = el.getAttribute('data-preset'); cfg.onOpen = function (o) { var sel = qs('#f_toStage', o); SP.boot.stages.forEach(function (s) { var op = document.createElement('option'); op.value = s.key; op.textContent = s.label; sel.appendChild(op); }); sel.value = preset; }; }
+          openForm(cfg);
+        }
+      }
+      else if (action === 'complete-followup') { var c2 = workflowForms().completeFollowUp; c2.payload = function (v) { v.activityId = id; return v; }; openForm(c2); }
+      else if (action === 'engagement') { api('workflow.markEmailEngagement', { emailLogId: id, event: el.getAttribute('data-event') }, function () { toast('success', 'Engagement recorded'); SP.afterAction(); }); }
+      else if (action === 'pin') { api('workflow.pinSearch', { query: el.getAttribute('data-query') }, function () { toast('success', 'Search pinned'); SP.afterAction(); }); }
+      else if (action === 'run-pinned') { qs('#globalSearch').value = el.getAttribute('data-query'); qs('#globalSearch').dispatchEvent(new Event('input')); }
+    });
+
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+    bindSearch();
+  }
+
+  function journeyCardBody() {
+    if (!SP.ws) return '';
+    var current = SP.ws.host.stage; var idx = stageIndex(current);
+    var out = '<div class="nx-journey2">';
+    SP.boot.stages.forEach(function (s, i) {
+      out += '<div class="nx-journey2__step ' + (i < idx ? 'is-completed' : i === idx ? 'is-current' : '') + '"><span class="nx-journey2__dot"><span class="material-symbols-outlined">' + (i < idx ? 'check' : i === idx ? 'flag' : 'circle') + '</span></span><span class="nx-journey2__label">' + esc(s.label) + '</span></div>';
+      if (i < SP.boot.stages.length - 1) out += '<div class="nx-journey2__line' + (i < idx ? ' is-complete' : '') + '"></div>';
+    });
+    out += '</div>';
+    var reqs = STAGE_REQUIREMENTS[current] || [];
+    out += '<div class="nx-stage-frame"><div class="nx-stage-frame__title">' + esc(stageLabel(current)) + ' — Requirements</div><div class="nx-checklist">' +
+      reqs.map(function (r) { return '<div class="nx-checklist__item is-pending"><span class="material-symbols-outlined">circle</span>' + esc(r) + '</div>'; }).join('') + '</div></div>';
+    return out;
+  }
+
+  function openNewHost() {
+    var hostOpts = (SP.boot && SP.boot.hostOptions) || {};
+    var hostTypes = hostOpts.hostTypes || ['Individual', 'Company', 'Property Manager', 'Hotel Group', 'Other'];
+    var ownerships = hostOpts.ownerships || ['Own', 'Manage', 'Both'];
+    var propertyTypes = hostOpts.propertyTypes || ['Hotel', 'Apartment', 'Serviced Apartment', 'Villa', 'Guesthouse', 'Hostel', 'Resort', 'Lodge', 'Student Accommodation', 'Office / Mixed-use', 'Other'];
+    var leadSources = ['Google Maps', 'Field Agent', 'Referral', 'Walk-in', 'Social Media', 'Other'];
+
+    openSteppedForm({ title: 'New Host', subtitle: 'Let\u2019s set up your property — we\u2019ll build the rest with you.', needsHost: false,
+      steps: [
+        { title: 'The place', fields: [
+          { key: 'hostName', label: 'Property / Host Name', required: true, placeholder: 'e.g. Wilma Towers' },
+          { key: 'hostType', label: 'What kind of host?', type: 'select', options: hostTypes },
+          { key: 'ownership', label: 'Do you own or manage it?', type: 'select', options: ownerships },
+          { key: 'propertyName', label: 'Property Name (if different)', placeholder: 'Leave blank if same as above' },
+          { key: 'propertyType', label: 'What kind of place is it?', type: 'select', options: propertyTypes },
+          { key: 'address', label: 'Where is it?', type: 'textarea', placeholder: 'Area, street, landmarks' }] },
+        { title: 'Contact & details', fields: [
+          { key: 'contactType', label: 'Best Way to Reach You', type: 'select', options: ['Phone', 'Email', 'WhatsApp', 'Socials'] },
+          { key: 'contactValue', label: 'Phone Number', dynamic: true },
+          { key: 'contactPerson', label: 'Contact Person' },
+          { key: 'email', label: 'Email' },
+          { key: 'leadSource', label: 'Lead Source', type: 'select', options: leadSources },
+          { key: 'mapsUrl', label: 'Google Maps Link' },
+          { key: 'unitCount', label: 'Rooms / Units', type: 'number' },
+          { key: 'checkIn', label: 'Check-in', placeholder: 'e.g. 2:00 PM' },
+          { key: 'checkOut', label: 'Check-out', placeholder: 'e.g. 11:00 AM' },
+          { key: 'owner', label: 'Owner' },
+          { key: 'notes', label: 'Notes', type: 'textarea' },
+          { key: 'firstFollowUpAt', label: 'First Follow-up', type: 'datetime' }] }],
+      route: 'workflow.createLead', submitLabel: 'Create Lead',
+      payload: function (v) {
+        // Map the dynamic contact value into the right column.
+        var t = v.contactType; var cv = v.contactValue || '';
+        if (t === 'Phone' || t === 'WhatsApp') v.phone = cv;
+        else if (t === 'Email') v.email = cv;
+        else if (t === 'Socials' && cv) v.notes = (v.notes ? v.notes + '\n' : '') + 'Social: ' + cv;
+        delete v.contactValue;
+        if (!v.propertyName && v.hostName) v.propertyName = v.hostName;
+        return v;
+      },
+      successTitle: 'Lead created' });
+  }
+
+  SP.afterAction = function () { SP.boot = null; invalidateCache(); getBoot(function () { render(); }); };
+
+  function boot() {
+    bindGlobal();
+    // Watchdog: skeletons must never spin forever. If bootstrap hasn't
+    // resolved in 25s (hung server call, offline), say so with a retry.
+    var bootTimer = setTimeout(function () {
+      if (!SP.boot) {
+        var c = qs('#tabContent');
+        if (c) c.innerHTML = errorState('The panel is taking too long to load. Check your connection, then retry.', 'today');
+        onFail('Bootstrap timed out after 25s. See Executions in the script editor for the server error.');
+      }
+    }, 25000);
+    getBoot(function () {
+      clearTimeout(bootTimer);
+      // Pinned searches ride along on bootstrap — no second round-trip.
+      SP.pinned = (SP.boot && SP.boot.pinned) || [];
+      render();
+    });
+  }
+
+  // Surface any uncaught client error as a toast so hangs become reports.
+  window.addEventListener('error', function (e) {
+    if (e && e.message) toast('error', 'Panel error', String(e.message).slice(0, 300));
+  });
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+</script>

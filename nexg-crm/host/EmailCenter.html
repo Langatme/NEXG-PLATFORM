@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>NEXG Email Control Center</title>
+
+  <?!= NEXG_include('Theme'); ?>
+
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #0b0b0e; }
+    body { font-family: "Inter", Arial, sans-serif; color: #edf2fb; font-size: 13px; }
+    .nxe { display: grid; grid-template-columns: 200px 1fr; min-height: 100vh; }
+    .nxe-side { background: #101018; border-right: 1px solid rgba(255,255,255,.07); padding: 18px 12px; display: flex; flex-direction: column; gap: 4px; }
+    .nxe-logo { display: flex; align-items: center; gap: 8px; padding: 0 8px 16px; }
+    .nxemail-logo-badge { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9px; background: #1d4ed8; color: #fff; font-weight: 800; font-size: 16px; flex: none; }
+    .nxe-brand { font-weight: 800; letter-spacing: .12em; font-size: 14px; }
+    .nxe-brand small { display: block; font-weight: 600; letter-spacing: .18em; font-size: 9px; color: #7e8ca7; }
+    .nxe-navcap { font-size: 10px; letter-spacing: .16em; color: #5b677d; font-weight: 800; padding: 12px 10px 4px; }
+    .nxe-nav { display: flex; align-items: center; gap: 10px; width: 100%; background: none; border: none; color: #b6c2d9; font: inherit; font-size: 13px; font-weight: 600; padding: 10px; border-radius: 10px; cursor: pointer; text-align: left; }
+    .nxemail-logo-badge, .nxe-nav:hover { background: rgba(255,255,255,.05); }
+    .nxe-nav.is-on { background: rgba(62,123,250,.14); color: #fff; }
+    .nxe-main { padding: 18px 22px 40px; min-width: 0; }
+    .nxe-top { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+    .nxe-top h1 { margin: 0; font-size: 18px; letter-spacing: .06em; }
+    .nxe-top .dim { color: #7e8ca7; font-size: 11px; letter-spacing: .14em; }
+    .nxe-pill { margin-left: auto; font-size: 10px; font-weight: 800; letter-spacing: .1em; padding: 5px 12px; border-radius: 999px; border: 1px solid; }
+    .nxe-pill.test { color: #f59e0b; border-color: rgba(245,158,11,.5); background: rgba(245,158,11,.1); }
+    .nxe-pill.live { color: #22c55e; border-color: rgba(34,197,94,.5); background: rgba(34,197,94,.1); }
+    .nxe-grid { display: grid; gap: 12px; }
+    .nxe-g4 { grid-template-columns: repeat(4, 1fr); }
+    .nxe-g2 { grid-template-columns: 1fr 1fr; }
+    @media (max-width: 860px) { .nxe { grid-template-columns: 1fr; } .nxe-side { flex-direction: row; flex-wrap: wrap; align-items: center; border-right: none; border-bottom: 1px solid rgba(255,255,255,.07); } .nxe-g4, .nxe-g2 { grid-template-columns: 1fr 1fr; } }
+    .nxe-card { background: linear-gradient(180deg, #15151c, #101014); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 18px; }
+    .nxe-hero-num { font-size: 44px; font-weight: 800; line-height: 1; }
+    .nxe-cap { font-size: 10px; letter-spacing: .16em; color: #7e8ca7; font-weight: 800; margin-bottom: 8px; }
+    .nxe-big { font-size: 30px; font-weight: 800; }
+    .nxemail-red { color: #ef4444; } .nxe-gold { color: #D4AF37; }
+    .nxe-btn { background: #1d4ed8; border: none; color: #fff; border-radius: 10px; padding: 11px 18px; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; }
+    .nxe-btn:hover { background: #2563eb; }
+    .nxe-btn.ghost { background: rgba(255,255,255,.06); color: #edf2fb; }
+    .nxe-btn.ghost:hover { background: rgba(255,255,255,.1); }
+    .nxe-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .nxe-field { display: grid; gap: 6px; margin-bottom: 12px; }
+    .nxe-field label { font-size: 11px; font-weight: 700; color: #b6c2d9; }
+    .nxe-input, .nxe-select, .nxe-textarea { background: #0c0c10; border: 1px solid rgba(255,255,255,.12); color: #edf2fb; border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 13px; width: 100%; }
+    .nxe-textarea { min-height: 90px; resize: vertical; }
+    .nxe-check { display: flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; }
+    .nxe-check input { width: 18px; height: 18px; accent-color: #D4AF37; }
+    .nxe-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .nxe-table th { text-align: left; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #7e8ca7; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .nxe-table td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,.05); vertical-align: top; }
+    .nxe-st { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
+    .nxe-st.Sent { background: rgba(34,197,94,.14); color: #22c55e; }
+    .nxe-st.Failed { background: rgba(239,68,68,.14); color: #ef4444; }
+    .nxe-st.Queued { background: rgba(245,158,11,.14); color: #f59e0b; }
+    .nxe-var { display: inline-block; font-size: 10px; font-family: monospace; background: rgba(62,123,250,.12); color: #9db9f5; border-radius: 6px; padding: 2px 7px; margin: 2px 4px 2px 0; }
+    .nxe-searchres { display: grid; gap: 6px; margin-top: 8px; }
+    .nxe-hit { display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; text-align: left; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 9px 12px; color: inherit; font: inherit; cursor: pointer; }
+    .nxe-hit:hover { border-color: rgba(212,175,55,.4); }
+    .nxe-modal { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; align-items: center; justify-content: center; z-index: 60; padding: 18px; }
+    .nxe-modal.open { display: flex; }
+    .nxe-modal-box { background: #141419; border: 1px solid rgba(255,255,255,.1); border-radius: 16px; max-width: 640px; width: 100%; max-height: 84vh; overflow: auto; padding: 20px; }
+    .nxe-mailbody { background: #fff; border-radius: 10px; padding: 8px; overflow: auto; }
+    .nxe-toast { position: fixed; right: 14px; bottom: 14px; background: #15151c; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 12px 16px; font-size: 13px; display: none; z-index: 70; max-width: 340px; }
+    .nxe-toast.show { display: block; }
+    .nxe-toast.err { border-color: rgba(239,68,68,.5); }
+  </style>
+</head>
+
+<body>
+  <div class="nxe">
+    <aside class="nxe-side">
+      <div class="nxe-logo"><span class="nxemail-logo-badge">N</span><span class="nxe-brand">NEXG<small>EMAIL OPS</small></span></div>
+      <div class="nxe-navcap">Control</div>
+      <button class="nxe-nav is-on" data-view="overview">Overview</button>
+      <button class="nxe-nav" data-view="compose">Compose</button>
+      <div class="nxe-navcap">System</div>
+      <button class="nxe-nav" data-view="templates">Templates</button>
+      <button class="nxe-nav" data-view="activity">Activity Log</button>
+      <button class="nxe-nav" data-view="settings">Settings</button>
+    </aside>
+
+    <main class="nxe-main">
+      <div class="nxe-top">
+        <h1 id="nxeTitle">OVERVIEW</h1>
+        <span class="nxe-pill test" id="nxeMode">…</span>
+        <span class="dim" id="nxeSync">—</span>
+        <button class="nxe-btn ghost" id="nxeRefresh" type="button">↻</button>
+      </div>
+      <div id="nxeBody"><div class="nxe-card">Loading Email Control Center…</div></div>
+    </main>
+  </div>
+
+  <div class="nxe-modal" id="nxeModal"><div class="nxe-modal-box" id="nxeModalBox"></div></div>
+  <div class="nxe-toast" id="nxeToast"></div>
+
+<script>
+(function () {
+  var S = { data: null, boot: null, view: 'overview', host: null, tpl: '' };
+
+  function esc(v) {
+    return String(v === null || v === undefined ? '' : v)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function call(route, payload, ok, fail) {
+    google.script.run
+      .withSuccessHandler(function (res) { if (res && res.success) ok(res.data); else (fail || toastErr)(res && res.error ? res.error.message : 'Request failed.'); })
+      .withFailureHandler(function (err) { (fail || toastErr)(err && err.message ? err.message : 'Server error.'); })
+      .NEXG_api({ route: route, payload: payload || {} });
+  }
+
+  function toast(msg, isErr) {
+    var t = document.getElementById('nxeToast');
+    t.textContent = msg;
+    t.className = 'nxe-toast show' + (isErr ? ' err' : '');
+    clearTimeout(t._h);
+    t._h = setTimeout(function () { t.className = 'nxe-toast'; }, isErr ? 6000 : 3200);
+  }
+  function toastErr(m) { toast(m, true); }
+
+  function load() {
+    document.getElementById('nxeBody').innerHTML = '<div class="nxe-card">Loading Email Control Center…</div>';
+    call('panel.emailCenter', {}, function (d) {
+      S.data = d;
+      call('panel.bootstrap', {}, function (b) {
+        S.boot = b;
+        paintMode();
+        go(S.view);
+        document.getElementById('nxeSync').textContent = 'SYNCED ' + new Date().toLocaleTimeString();
+      });
+    });
+  }
+
+  function paintMode() {
+    var pill = document.getElementById('nxeMode');
+    if (S.data && S.data.testMode) {
+      pill.textContent = '● TEST MODE';
+      pill.className = 'nxe-pill test';
+    } else {
+      pill.textContent = '● LIVE';
+      pill.className = 'nxe-pill live';
+    }
+  }
+
+  function go(view) {
+    S.view = view;
+    var btns = document.querySelectorAll('.nxe-nav');
+    for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('is-on', btns[i].getAttribute('data-view') === view);
+    document.getElementById('nxeTitle').textContent = view.toUpperCase();
+    if (view === 'overview') vOverview();
+    else if (view === 'compose') vCompose();
+    else if (view === 'templates') vTemplates();
+    else if (view === 'activity') vActivity();
+    else if (view === 'settings') vSettings();
+  }
+
+  function vOverview() {
+    var s = S.data.stats, q = S.data.queue;
+    document.getElementById('nxeBody').innerHTML =
+      '<div class="nxe-grid nxe-g4">' +
+      '<div class="nxe-card"><div class="nxe-cap">Total Dispatched</div><div class="nxe-hero-num">' + s.sent + '</div><div class="nxe-sub">logged sends · all time</div></div>' +
+      '<div class="nxe-card"><div class="nxe-cap">Queued</div><div class="nxe-hero-num">' + q.pending + '</div><div class="nxe-sub">waiting on trigger</div></div>' +
+      '<div class="nxe-card"><div class="nxe-cap">Failed</div><div class="nxe-hero-num nxemail-red">' + (s.failed + q.failed) + '</div><div class="nxe-sub">needs attention</div></div>' +
+      '<div class="nxe-card"><div class="nxe-cap">Quota Left Today</div><div class="nxe-hero-num nxe-gold">' + (q.quotaLeft === null || q.quotaLeft === undefined ? '–' : q.quotaLeft) + '</div><div class="nxe-sub">gmail allowance</div></div>' +
+      '</div>' +
+      '<div class="nxe-card" style="margin-top:12px;"><div class="nxe-cap">Last Dispatch</div><div>' + esc(lastSubject()) + '</div></div>';
+  }
+
+  function lastSubject() {
+    var logs = S.data.logs || [];
+    return logs.length ? (logs[0].subject || '(no subject)') + ' → ' + logs[0].recipient : '—';
+  }
+
+  function tplOptions(sel) {
+    var list = (S.boot && S.boot.emailTemplates) || [];
+    return '<option value="">Custom message</option>' + list.map(function (t) {
+      return '<option value="' + esc(t.key) + '"' + (sel === t.key ? ' selected' : '') + '>' + esc(t.label) + '</option>';
+    }).join('');
+  }
+
+  function vCompose() {
+    var h = S.host || {};
+    document.getElementById('nxeBody').innerHTML =
+      '<div class="nxe-card"><div class="nxe-cap">1 · Host (optional)</div>' +
+      '<div class="nxe-field"><label>Search hosts</label><input id="cSearch" class="nxe-input" type="text" placeholder="Type 2+ letters…" autocomplete="off"></div>' +
+      '<div class="nxe-searchres" id="cResults"></div>' +
+      '<div class="nxe-sub" id="cHostLine">' + (h.hostName ? 'To: <strong>' + esc(h.hostName) + '</strong> (' + esc(h.email || 'no email') + ')' : 'No host picked — sending free-form.') + '</div></div>' +
+      '<div class="nxe-card" style="margin-top:12px;"><div class="nxe-cap">2 · Template + message</div>' +
+      '<div class="nxe-field"><label>Template</label><select id="cTpl" class="nxe-select">' + tplOptions(S.tpl) + '</select></div>' +
+      '<div id="cVars"></div>' +
+      '<div class="nxe-field"><label>Recipient</label><input id="cTo" class="nxe-input" type="text" value="' + esc(h.email || '') + '"></div>' +
+      '<div class="nxe-field"><label>Subject (optional with template)</label><input id="cSubj" class="nxe-input" type="text"></div>' +
+      '<div class="nxe-field"><label>Message (required for custom)</label><textarea id="cBody" class="nxe-textarea"></textarea></div>' +
+      '<div style="display:flex;gap:8px;"><button class="nxe-btn ghost" id="cPrev" type="button">Preview</button>' +
+      '<button class="nxe-btn" id="cSend" type="button" style="flex:1">Send Now</button></div></div>';
+    wireCompose();
+  }
+
+  function collectVars() {
+    var data = {};
+    var els = document.querySelectorAll('#cVars [data-vk]');
+    for (var i = 0; i < els.length; i++) data[els[i].getAttribute('data-vk')] = els[i].value.trim();
+    return data;
+  }
+
+  function wireCompose() {
+    var h = S.host || {};
+    var prefill = { contact_person: h.contactPerson || '', host_name: h.hostName || '', property_name: h.propertyName || h.hostName || '', sales_rep: h.owner || '' };
+    var big = { meeting_purpose: 1, proposal_summary: 1, follow_up_message: 1, meeting_summary: 1, next_steps: 1, onboarding_next_step: 1 };
+    var sel = document.getElementById('cTpl');
+    var renderVars = function () {
+      var box = document.getElementById('cVars');
+      box.innerHTML = '';
+      var found = null;
+      ((S.boot && S.boot.emailTemplates) || []).forEach(function (t) { if (t.key === sel.value) found = t; });
+      if (!found) return;
+      box.innerHTML = found.variables.map(function (v) {
+        var tag = big[v.key] ? 'textarea' : 'input';
+        var cls = big[v.key] ? 'nxe-textarea' : 'nxe-input';
+        return '<div class="nxe-field"><label>' + esc(v.label) + '</label><' + tag + ' class="' + cls + '" data-vk="' + esc(v.key) + '">' +
+          esc(prefill[v.key] || '') + (big[v.key] ? '</' + tag + '>' : '') + '</div>';
+      }).join('');
+    };
+    sel.addEventListener('change', renderVars);
+    renderVars();
+
+    var searchTimer = null;
+    document.getElementById('cSearch').addEventListener('input', function () {
+      clearTimeout(searchTimer);
+      var q = this.value.trim();
+      var box = document.getElementById('cResults');
+      if (q.length < 2) { box.innerHTML = ''; return; }
+      searchTimer = setTimeout(function () {
+        call('panel.search', { query: q }, function (d) {
+          box.innerHTML = (d.hosts || []).map(function (x) {
+            return '<button class="nxe-hit" data-hid="' + esc(x.hostId) + '"><span><strong>' + esc(x.hostName) + '</strong><br><span class="nxe-sub">' + esc(x.email || x.phone || 'no contact') + '</span></span><span>→</span></button>';
+          }).join('') || '<div class="nxe-sub">No hosts match.</div>';
+          var hits = box.querySelectorAll('.nxe-hit');
+          for (var i = 0; i < hits.length; i++) {
+            hits[i].addEventListener('click', function () {
+              var id = this.getAttribute('data-hid');
+              call('panel.workspace', { hostId: id }, function (w) {
+                S.host = w.host; vCompose();
+                toast('Host attached: ' + w.host.hostName);
+              });
+            });
+          }
+        });
+      }, 350);
+    });
+
+    document.getElementById('cPrev').addEventListener('click', function () {
+      var t = sel.value;
+      if (!t) { toast('Pick a template to preview.', true); return; }
+      call('panel.emailPreview', { templateId: t, data: collectVars() }, function (d) {
+        modal('<h3 style="margin:0 0 4px;">' + esc(t) + '</h3><div class="nxe-sub" style="margin-bottom:10px;">' + esc(d.subject || '') + '</div>' +
+          '<div class="nxe-mailbody">' + d.body + '</div>');
+      });
+    });
+
+    document.getElementById('cSend').addEventListener('click', function () {
+      var btn = this;
+      btn.disabled = true;
+      call('panel.emailSend', {
+        templateId: sel.value,
+        recipient: document.getElementById('cTo').value.trim(),
+        hostId: (S.host && S.host.hostId) || '',
+        subject: document.getElementById('cSubj').value.trim(),
+        body: document.getElementById('cBody').value.trim(),
+        data: collectVars()
+      }, function (r) {
+        btn.disabled = false;
+        toast('Processed: ' + r.processed.sent + ' sent, ' + r.processed.failed + ' failed.');
+        load();
+      }, function (m) { btn.disabled = false; toast(m, true); });
+    });
+  }
+
+  function vTemplates() {
+    var list = (S.boot && S.boot.emailTemplates) || [];
+    document.getElementById('nxeBody').innerHTML = '<div class="nxe-card"><div class="nxe-cap">Registered Templates (' + list.length + ')</div>' +
+      '<div class="nxe-grid nxe-g2">' + list.map(function (t) {
+        return '<div class="nxe-card"><strong>' + esc(t.label) + '</strong>' +
+          '<div style="margin:8px 0;">' + t.variables.map(function (v) { return '<span class="nxe-var">{{' + esc(v.key) + '}}</span>'; }).join('') + '</div>' +
+          '<div style="display:flex;gap:8px;"><button class="nxe-btn ghost" data-tp="prev" data-k="' + esc(t.key) + '" type="button">Preview</button>' +
+          '<button class="nxe-btn" data-tp="use" data-k="' + esc(t.key) + '" type="button" style="flex:1">Compose</button></div></div>';
+      }).join('') + '</div></div>';
+    var btns = document.querySelectorAll('[data-tp]');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].addEventListener('click', function () {
+        var k = this.getAttribute('data-k');
+        if (this.getAttribute('data-tp') === 'prev') {
+          call('panel.emailPreview', { templateId: k, data: {} }, function (d) {
+            modal('<h3 style="margin:0 0 4px;">' + esc(k) + '</h3><div class="nxe-sub" style="margin-bottom:10px;">' + esc(d.subject || '') + '</div>' +
+              '<div class="nxe-mailbody">' + d.body + '</div>');
+          });
+        } else { S.tpl = k; go('compose'); }
+      });
+    }
+  }
+
+  function vActivity() {
+    var logs = S.data.logs || [];
+    document.getElementById('nxeBody').innerHTML = '<div class="nxe-card"><div class="nxe-cap">Activity Log (' + logs.length + ' shown)</div>' +
+      '<table class="nxe-table"><thead><tr><th>Subject</th><th>To</th><th>Status</th><th>When</th></tr></thead><tbody>' +
+      (logs.length ? logs.map(function (l) {
+        return '<tr><td><strong>' + esc(l.subject || '(no subject)') + '</strong>' +
+          (l.failureReason ? '<br><span style="color:#ef4444;font-size:11px;">' + esc(l.failureReason) + '</span>' : '') + '</td>' +
+          '<td>' + esc(l.recipient) + '</td>' +
+          '<td><span class="nxe-st ' + esc(l.status) + '">' + esc(l.status) + '</span></td>' +
+          '<td style="white-space:nowrap;">' + esc(String(l.sentAt || l.createdAt || '').slice(0, 16).replace('T', ' ')) + '</td></tr>';
+      }).join('') : '<tr><td colspan="4">No sends logged yet.</td></tr>') + '</tbody></table></div>';
+  }
+
+  function vSettings() {
+    document.getElementById('nxeBody').innerHTML =
+      '<div class="nxe-card"><div class="nxe-cap">Safety Switch</div>' +
+      '<label class="nxe-check"><input id="sMode" type="checkbox"' + (S.data.testMode ? ' checked' : '') + '><span>Test mode (redirect every send)</span></label>' +
+      '<div class="nxe-field" style="margin-top:12px;"><label>Test recipient</label>' +
+      '<input id="sTo" class="nxe-input" type="text" value="' + esc(S.data.testRecipient || '') + '"></div>' +
+      '<button class="nxe-btn" id="sSave" type="button">Save Settings</button></div>';
+    document.getElementById('sSave').addEventListener('click', function () {
+      var btn = this;
+      btn.disabled = true;
+      call('panel.emailSaveSettings', {
+        testMode: document.getElementById('sMode').checked,
+        testRecipient: document.getElementById('sTo').value.trim()
+      }, function () { btn.disabled = false; toast('Settings saved.'); load(); },
+      function (m) { btn.disabled = false; toast(m, true); });
+    });
+  }
+
+  function modal(html) {
+    document.getElementById('nxeModalBox').innerHTML = html +
+      '<div style="margin-top:14px;text-align:right;"><button class="nxe-btn ghost" id="nxeModalX" type="button">Close</button></div>';
+    document.getElementById('nxeModal').classList.add('open');
+    document.getElementById('nxeModalX').addEventListener('click', function () {
+      document.getElementById('nxeModal').classList.remove('open');
+    });
+  }
+  document.getElementById('nxeModal').addEventListener('click', function (e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+
+  var navs = document.querySelectorAll('.nxe-nav');
+  for (var i = 0; i < navs.length; i++) {
+    navs[i].addEventListener('click', function () { go(this.getAttribute('data-view')); });
+  }
+  document.getElementById('nxeRefresh').addEventListener('click', load);
+
+  load();
+})();
+</script>
+</body>
+</html>

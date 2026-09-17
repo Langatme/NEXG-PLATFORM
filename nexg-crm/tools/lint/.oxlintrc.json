@@ -1,0 +1,57 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "ignorePatterns": [
+    "**/*.html",
+    "node_modules/**",
+    "check-inline.js"
+  ],
+  "globals": {
+    "SpreadsheetApp": "readonly",
+    "GmailApp": "readonly",
+    "MailApp": "readonly",
+    "HtmlService": "readonly",
+    "ScriptApp": "readonly",
+    "PropertiesService": "readonly",
+    "Utilities": "readonly",
+    "Session": "readonly",
+    "DriveApp": "readonly",
+    "CalendarApp": "readonly",
+    "CacheService": "readonly",
+    "LockService": "readonly",
+    "Logger": "readonly",
+    "MimeType": "readonly",
+    "ContentService": "readonly",
+    "CardService": "readonly",
+    "SlidesApp": "readonly",
+    "DocsApp": "readonly",
+    "ContactsApp": "readonly",
+    "GroupsApp": "readonly",
+    "Maps": "readonly",
+    "UrlFetchApp": "readonly",
+    "XmlService": "readonly",
+    "console": "readonly"
+  },
+  "jsPlugins": [
+    {
+      "name": "anti-slop",
+      "specifier": "../oxlint/anti-slop/index.ts"
+    }
+  ],
+  "rules": {
+    "anti-slop/no-chained-type-assertions": "error",
+    "anti-slop/no-conditional-empty-object-spread": "error",
+    "anti-slop/no-known-value-widening": "error",
+    "anti-slop/no-module-mocking": "error",
+    "anti-slop/no-object-parameters": "error",
+    "anti-slop/no-reflect-apply": "error",
+    "anti-slop/no-reflect-get": "error",
+    "anti-slop/no-runtime-typeof": "warn",
+    "anti-slop/no-shape-in-symbol-names": "error",
+    "anti-slop/no-unknown-parameters": "error",
+    "anti-slop/no-unknown-returns": "error",
+    "anti-slop/no-unknown-type-aliases": "error",
+    "anti-slop/no-unsafe-dictionary-type": "error",
+    "anti-slop/no-widen-then-assert": "error",
+    "anti-slop/require-safety-comment-for-type-assertion": "error"
+  }
+}

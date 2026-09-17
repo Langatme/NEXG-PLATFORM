@@ -1,0 +1,16 @@
+{
+  "name": "nexg-crm-lint",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pre-push quality gate for NEXG CRM Apps Script sources (never pushed to Google; clasp rootDirs exclude tools/).",
+  "scripts": {
+    "lint": "oxlint C:/Users/lenovo/Desktop/nexg-crm/host C:/Users/lenovo/Desktop/nexg-crm/merchant",
+    "check": "node ./check-inline.js",
+    "checkjs": "node ./check-js.js",
+    "gate": "npm run checkjs && npm run check && npm run lint"
+  },
+  "devDependencies": {
+    "@oxlint/plugins": "1.82.0",
+    "oxlint": "1.82.0"
+  }
+}

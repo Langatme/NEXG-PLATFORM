@@ -1,0 +1,614 @@
+<!-- ═══════════════════════════════════════════════════════════════
+     NEXG Smart Panel — Modals v5.1 (Queue & Automation Ready)
+     Pinned footer · Numbered sections · Segmented sentiment
+     Date + Time pickers · Email Queue Toggles
+     ═══════════════════════════════════════════════════════════════ -->
+
+<!-- 1. Log Contact -->
+<div class="modal-overlay fixed inset-0 flex items-center justify-center px-3 z-[100] cursor-pointer hidden" id="contact-modal" onclick="if(event.target===this)closeModal('contact-modal')">
+  <div class="modal-sheet modal-sheet-inner w-full max-w-sm flex flex-col max-h-[92vh] cursor-default">
+    <div class="flex items-center justify-between p-4 border-b border-white/[0.06] shrink-0">
+      <span class="text-[14px] font-extrabold text-white">Log Contact</span>
+      <button onclick="closeModal('contact-modal')" class="w-8 h-8 rounded-xl hover:bg-white/5 text-muted hover:text-white flex items-center justify-center transition-colors text-lg leading-none">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">01</span><span class="form-sec-title">Who & How</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="flabel">Method</label>
+              <select id="contact-method-select" class="nx-select"><option>Phone Call</option><option>WhatsApp</option><option>Email</option><option>Physical Visit</option><option>Referral</option></select></div>
+            <div><label class="flabel">Contact Person</label>
+              <input id="contact-person-input" type="text" class="nx-input" placeholder="e.g. John Doe"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">02</span><span class="form-sec-title">Discussion Points</span><span class="dp-count" id="contact-dp-count">0</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="dp-sent-row" id="contact-dp-sentiment">
+            <button type="button" class="dp-sent-opt active" data-v="Positive" onclick="setModalSentiment('contact','Positive')">+ Pos</button>
+            <button type="button" class="dp-sent-opt" data-v="Neutral" onclick="setModalSentiment('contact','Neutral')">Neu</button>
+            <button type="button" class="dp-sent-opt" data-v="Negative" onclick="setModalSentiment('contact','Negative')">− Neg</button>
+          </div>
+          <div class="dp-input-row">
+            <input id="contact-dp-input" type="text" placeholder="Capture what they said…" class="nx-input dp-input text-[11px]">
+            <button type="button" onclick="addModalPoint('contact')" class="btn-gold dp-add text-[11px]">Add</button>
+          </div>
+          <div class="modal-dp-list-container flex flex-col gap-1 max-h-28 overflow-y-auto" id="contact-dp-list"></div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">03</span><span class="form-sec-title">Outcome</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div><label class="flabel">Result</label>
+            <select id="contact-outcome-select" class="nx-select"><option>Decision Maker Identified</option><option>Interested</option><option>Requested Meeting</option><option>Requested Call Back</option><option>No Answer</option><option>Not Interested</option></select></div>
+          <div><label class="flabel">Notes</label>
+            <textarea id="contact-notes-input" rows="2" class="nx-textarea" placeholder="Conversation summary… (Ctrl+Enter saves)"></textarea></div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">04</span><span class="form-sec-title">Next Step</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="flex items-center justify-between"><span class="text-[11px] font-bold text-offwhite">Create Follow Up?</span>
+            <select id="contact-create-follow-up" class="nx-select w-16 text-[10px]" onchange="toggleContactFollowUpFields()"><option value="YES">Yes</option><option value="NO">No</option></select></div>
+          <div id="contact-follow-up-fields" class="flex flex-col gap-2 pt-2 border-t border-white/[0.04]">
+            <div class="grid grid-cols-2 gap-2">
+              <div><label class="flabel">Date</label><input id="contact-follow-up-date" type="date" class="nx-input text-[11px]"></div>
+              <div><label class="flabel">Time</label><input id="contact-follow-up-time" type="time" class="nx-input text-[11px]"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div><label class="flabel">Why</label><input id="contact-follow-up-reason" class="nx-input text-[11px]" type="text" placeholder="Reason"></div>
+              <div><label class="flabel">Action</label><input id="contact-follow-up-action" class="nx-input text-[11px]" type="text" placeholder="Next action"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('contact-modal')" class="btn-ghost py-2.5 text-[12px] flex-1">Cancel</button>
+      <button onclick="submitContactLog()" class="btn-gold py-2.5 text-[12px] flex-[2]">Save & Set Stage 'Contact'</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Follow Up -->
+<div class="modal-overlay fixed inset-0 flex items-center justify-center px-3 z-[100] cursor-pointer hidden" id="follow-up-modal" onclick="if(event.target===this)closeModal('follow-up-modal')">
+  <div class="modal-sheet modal-sheet-inner w-full max-w-sm flex flex-col max-h-[92vh] cursor-default">
+    <div class="flex items-center justify-between p-4 border-b border-white/[0.06] shrink-0">
+      <span class="text-[14px] font-extrabold text-white">Log Follow Up</span>
+      <button onclick="closeModal('follow-up-modal')" class="w-8 h-8 rounded-xl hover:bg-white/5 text-muted hover:text-white flex items-center justify-center transition-colors text-lg leading-none">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">01</span><span class="form-sec-title">Reason</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <input id="follow-up-reason-input" type="text" class="nx-input font-semibold" placeholder="Why are you following up?">
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">02</span><span class="form-sec-title">Discussion Points</span><span class="dp-count" id="fu-dp-count">0</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="dp-sent-row" id="fu-dp-sentiment">
+            <button type="button" class="dp-sent-opt active" data-v="Positive" onclick="setModalSentiment('fu','Positive')">+ Pos</button>
+            <button type="button" class="dp-sent-opt" data-v="Neutral" onclick="setModalSentiment('fu','Neutral')">Neu</button>
+            <button type="button" class="dp-sent-opt" data-v="Negative" onclick="setModalSentiment('fu','Negative')">− Neg</button>
+          </div>
+          <div class="dp-input-row">
+            <input id="fu-dp-input" type="text" placeholder="Capture what they said…" class="nx-input dp-input text-[11px]">
+            <button type="button" onclick="addModalPoint('fu')" class="btn-gold dp-add text-[11px]">Add</button>
+          </div>
+          <div class="modal-dp-list-container flex flex-col gap-1 max-h-28 overflow-y-auto" id="fu-dp-list"></div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">03</span><span class="form-sec-title">Outcome</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <select id="follow-up-outcome-select" class="nx-select"><option>Interested</option><option>Requested Meeting</option><option>Requested Demo</option><option>Still Thinking</option><option>No Answer</option><option>Not Interested</option></select>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">04</span><span class="form-sec-title">Schedule Next</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="flex items-center justify-between"><span class="text-[11px] font-bold text-offwhite">Schedule Another?</span>
+            <select id="follow-up-create-another" class="nx-select w-16 text-[10px]" onchange="toggleFollowUpCreateAnotherFields()"><option value="YES">Yes</option><option value="NO">No</option></select></div>
+          <div id="follow-up-another-fields" class="flex flex-col gap-2 pt-2 border-t border-white/[0.04]">
+            <div class="grid grid-cols-2 gap-2">
+              <div><label class="flabel">Date</label><input id="follow-up-next-date" type="date" class="nx-input text-[11px]"></div>
+              <div><label class="flabel">Time</label><input id="follow-up-next-time" type="time" class="nx-input text-[11px]"></div>
+            </div>
+            <div><label class="flabel">Reason</label><input id="follow-up-next-reason" type="text" class="nx-input text-[11px]" placeholder="Next reason"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('follow-up-modal')" class="btn-ghost py-2.5 text-[12px] flex-1">Cancel</button>
+      <button onclick="submitFollowUpLog()" class="btn-gold py-2.5 text-[12px] flex-[2]">Save Follow Up</button>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Meeting (FIXED STRUCTURE + EMAIL TOGGLE) -->
+<div class="modal-overlay fixed inset-0 flex items-center justify-center px-3 z-[100] cursor-pointer hidden" id="meeting-modal" onclick="if(event.target===this)closeModal('meeting-modal')">
+  <div class="modal-sheet modal-sheet-inner w-full max-w-sm flex flex-col max-h-[92vh] cursor-default">
+    <div class="flex items-center justify-between p-4 border-b border-white/[0.06] shrink-0">
+      <span class="text-[14px] font-extrabold text-white">Log Meeting</span>
+      <button onclick="closeModal('meeting-modal')" class="w-8 h-8 rounded-xl hover:bg-white/5 text-muted hover:text-white flex items-center justify-center transition-colors text-lg leading-none">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">01</span><span class="form-sec-title">Session</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="flabel">Type</label>
+              <select id="meeting-type-select" class="nx-select"><option>Physical</option><option>Virtual</option><option>Phone</option></select></div>
+            <div><label class="flabel">Contact Person</label>
+              <input id="meeting-contact-person" type="text" class="nx-input"></div>
+            <div><label class="flabel">Date</label><input id="meeting-date-input" type="date" class="nx-input text-[11px]"></div>
+            <div><label class="flabel">Time</label><input id="meeting-time-input" type="time" class="nx-input text-[11px]"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">02</span><span class="form-sec-title">Purpose</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <textarea id="meeting-purpose-input" rows="2" class="nx-textarea" placeholder="Purpose & summary…"></textarea>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">03</span><span class="form-sec-title">Discussion Points</span><span class="dp-count" id="mtg-dp-count">0</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="dp-sent-row" id="mtg-dp-sentiment">
+            <button type="button" class="dp-sent-opt active" data-v="Positive" onclick="setModalSentiment('mtg','Positive')">+ Pos</button>
+            <button type="button" class="dp-sent-opt" data-v="Neutral" onclick="setModalSentiment('mtg','Neutral')">Neu</button>
+            <button type="button" class="dp-sent-opt" data-v="Negative" onclick="setModalSentiment('mtg','Negative')">− Neg</button>
+          </div>
+          <div class="dp-input-row">
+            <input id="mtg-dp-input" type="text" placeholder="Key feedback…" class="nx-input dp-input text-[11px]">
+            <button type="button" onclick="addModalPoint('mtg')" class="btn-gold dp-add text-[11px]">Add</button>
+          </div>
+          <div class="modal-dp-list-container flex flex-col gap-1 max-h-28 overflow-y-auto" id="mtg-dp-list"></div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">04</span><span class="form-sec-title">Outcome</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <select id="meeting-outcome-select" class="nx-select"><option>Meeting Successful</option><option>Need Demo</option><option>Need Proposal</option><option>Not Interested</option></select>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">05</span><span class="form-sec-title">Next Step</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="flex items-center justify-between"><span class="text-[11px] font-bold text-offwhite">Create Follow Up?</span>
+            <select id="meeting-create-follow-up" class="nx-select w-16 text-[10px]" onchange="toggleMeetingFollowUpFields()"><option value="YES">Yes</option><option value="NO">No</option></select>
+          </div>
+          <div id="meeting-follow-up-fields" class="flex flex-col gap-2 pt-2 border-t border-white/[0.04]">
+            <div class="grid grid-cols-2 gap-2">
+              <div><label class="flabel">Date</label><input id="meeting-follow-up-date" type="date" class="nx-input text-[11px]"></div>
+              <div><label class="flabel">Time</label><input id="meeting-follow-up-time" type="time" class="nx-input text-[11px]"></div>
+            </div>
+            <div><label class="flabel">Reason</label><input id="meeting-follow-up-reason" class="nx-input text-[11px]" type="text" placeholder="Reason"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">06</span><span class="form-sec-title">Email Automation</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="flex items-center justify-between"><span class="text-[11px] font-bold text-offwhite">Queue confirmation + reminder?</span>
+            <select id="meeting-send-email" class="nx-select w-16 text-[10px]"><option value="YES">Yes</option><option value="NO">No</option></select>
+          </div>
+          <p class="text-[9.5px] text-muted/60 mt-1">Sends confirmation now, and a reminder 24h before the meeting.</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('meeting-modal')" class="btn-ghost py-2.5 text-[12px] flex-1">Cancel</button>
+      <button onclick="submitMeetingLog()" class="btn-gold py-2.5 text-[12px] flex-[2]">Save & Set Stage 'Meeting'</button>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Demo -->
+<div class="modal-overlay fixed inset-0 flex items-center justify-center px-3 z-[100] cursor-pointer hidden" id="demo-modal" onclick="if(event.target===this)closeModal('demo-modal')">
+  <div class="modal-sheet modal-sheet-inner w-full max-w-sm flex flex-col max-h-[92vh] cursor-default">
+    <div class="flex items-center justify-between p-4 border-b border-white/[0.06] shrink-0">
+      <span class="text-[14px] font-extrabold text-white">Record Demo</span>
+      <button onclick="closeModal('demo-modal')" class="w-8 h-8 rounded-xl hover:bg-white/5 text-muted hover:text-white flex items-center justify-center transition-colors text-lg leading-none">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">01</span><span class="form-sec-title">Scope</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <input id="demo-type-input" type="text" class="nx-input font-semibold" value="Full Platform & POS App">
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">02</span><span class="form-sec-title">Feedback & Reactions</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <textarea id="demo-feedback-input" rows="3" class="nx-textarea" placeholder="How did they react?"></textarea>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">03</span><span class="form-sec-title">Outcome</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <select id="demo-outcome-select" class="nx-select"><option>Need Proposal</option><option>Successful</option><option>Need Secondary Demo</option><option>Rejected</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('demo-modal')" class="btn-ghost py-2.5 text-[12px] flex-1">Cancel</button>
+      <button onclick="submitDemoLog()" class="btn-gold py-2.5 text-[12px] flex-[2]">Save & Set Stage 'Demo'</button>
+    </div>
+  </div>
+</div>
+
+<!-- 5. Proposal (+ EMAIL TOGGLE) -->
+<div class="modal-overlay fixed inset-0 flex items-center justify-center px-3 z-[100] cursor-pointer hidden" id="proposal-modal" onclick="if(event.target===this)closeModal('proposal-modal')">
+  <div class="modal-sheet modal-sheet-inner w-full max-w-sm flex flex-col max-h-[92vh] cursor-default">
+    <div class="flex items-center justify-between p-4 border-b border-white/[0.06] shrink-0">
+      <span class="text-[14px] font-extrabold text-white">Send Proposal</span>
+      <button onclick="closeModal('proposal-modal')" class="w-8 h-8 rounded-xl hover:bg-white/5 text-muted hover:text-white flex items-center justify-center transition-colors text-lg leading-none">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">01</span><span class="form-sec-title">Details</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="flabel">Date</label><input id="proposal-date-input" type="date" class="nx-input"></div>
+            <div><label class="flabel">Value (KSH)</label><input id="proposal-value-input" type="number" class="nx-input font-semibold"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">02</span><span class="form-sec-title">Terms & Notes</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <textarea id="proposal-notes-input" rows="2" class="nx-textarea" placeholder="Proposal terms…"></textarea>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">03</span><span class="form-sec-title">Outcome</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <select id="proposal-outcome-select" class="nx-select"><option>Need Negotiation</option><option>Accepted</option><option>Waiting Decision</option></select>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">04</span><span class="form-sec-title">Email Automation</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="flex items-center justify-between"><span class="text-[11px] font-bold text-offwhite">Queue proposal email?</span>
+            <select id="proposal-send-email" class="nx-select w-16 text-[10px]"><option value="YES">Yes</option><option value="NO">No</option></select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('proposal-modal')" class="btn-ghost py-2.5 text-[12px] flex-1">Cancel</button>
+      <button onclick="submitProposalLog()" class="btn-gold py-2.5 text-[12px] flex-[2]">Save Proposal</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6. Negotiation -->
+<div class="modal-overlay fixed inset-0 flex items-center justify-center px-3 z-[100] cursor-pointer hidden" id="negotiation-modal" onclick="if(event.target===this)closeModal('negotiation-modal')">
+  <div class="modal-sheet modal-sheet-inner w-full max-w-sm flex flex-col max-h-[92vh] cursor-default">
+    <div class="flex items-center justify-between p-4 border-b border-white/[0.06] shrink-0">
+      <span class="text-[14px] font-extrabold text-white">Negotiation</span>
+      <button onclick="closeModal('negotiation-modal')" class="w-8 h-8 rounded-xl hover:bg-white/5 text-muted hover:text-white flex items-center justify-center transition-colors text-lg leading-none">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">01</span><span class="form-sec-title">Terms Agreed</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <textarea id="negotiation-agreements-input" rows="2" class="nx-textarea" placeholder="What was agreed…"></textarea>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">02</span><span class="form-sec-title">Open Points / Concerns</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <textarea id="negotiation-concerns-input" rows="2" class="nx-textarea" placeholder="Unresolved items…"></textarea>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">03</span><span class="form-sec-title">Outcome</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <select id="negotiation-outcome-select" class="nx-select"><option>Agreement Reached</option><option>Need Follow-up</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('negotiation-modal')" class="btn-ghost py-2.5 text-[12px] flex-1">Cancel</button>
+      <button onclick="submitNegotiationLog()" class="btn-gold py-2.5 text-[12px] flex-[2]">Save Negotiation</button>
+    </div>
+  </div>
+</div>
+
+<!-- 7. Contract (+ EMAIL TOGGLE) -->
+<div class="modal-overlay fixed inset-0 flex items-center justify-center px-3 z-[100] cursor-pointer hidden" id="contract-modal" onclick="if(event.target===this)closeModal('contract-modal')">
+  <div class="modal-sheet modal-sheet-inner w-full max-w-sm flex flex-col max-h-[92vh] cursor-default">
+    <div class="flex items-center justify-between p-4 border-b border-white/[0.06] shrink-0">
+      <span class="text-[14px] font-extrabold text-white">Contract</span>
+      <button onclick="closeModal('contract-modal')" class="w-8 h-8 rounded-xl hover:bg-white/5 text-muted hover:text-white flex items-center justify-center transition-colors text-lg leading-none">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">01</span><span class="form-sec-title">Details</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="flabel">Contract ID</label><input id="contract-id-input" type="text" class="nx-input font-mono font-semibold" placeholder="NXG-CTR-001"></div>
+            <div><label class="flabel">Sent Date</label><input id="contract-date-input" type="date" class="nx-input"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">02</span><span class="form-sec-title">Signature</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="flex items-center justify-between"><span class="text-[11px] font-bold text-offwhite">Signed Received?</span>
+            <select id="contract-is-signed" class="nx-select w-20 text-[10px]"><option value="YES">Yes</option><option value="NO">No</option></select></div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">03</span><span class="form-sec-title">Special Terms</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <textarea id="contract-terms-input" rows="2" class="nx-textarea" placeholder="Special terms…"></textarea>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">04</span><span class="form-sec-title">Email Automation</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="flex items-center justify-between"><span class="text-[11px] font-bold text-offwhite">Queue contract email?</span>
+            <select id="contract-send-email" class="nx-select w-16 text-[10px]"><option value="YES">Yes</option><option value="NO">No</option></select>
+          </div>
+          <p class="text-[9.5px] text-muted/60 mt-1">Sends standard contract email, or "Welcome" email if marked as signed.</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('contract-modal')" class="btn-ghost py-2.5 text-[12px] flex-1">Cancel</button>
+      <button onclick="submitContractLog()" class="btn-gold py-2.5 text-[12px] flex-[2]">Save Contract</button>
+    </div>
+  </div>
+</div>
+
+<!-- 8. Onboarding (+ EMAIL TOGGLE) -->
+<div class="modal-overlay fixed inset-0 flex items-center justify-center px-3 z-[100] cursor-pointer hidden" id="onboarding-modal" onclick="if(event.target===this)closeModal('onboarding-modal')">
+  <div class="modal-sheet modal-sheet-inner w-full max-w-sm flex flex-col max-h-[92vh] cursor-default">
+    <div class="flex items-center justify-between p-4 border-b border-white/[0.06] shrink-0">
+      <span class="text-[14px] font-extrabold text-white">Onboarding</span>
+      <button onclick="closeModal('onboarding-modal')" class="w-8 h-8 rounded-xl hover:bg-white/5 text-muted hover:text-white flex items-center justify-center transition-colors text-lg leading-none">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">01</span><span class="form-sec-title">Milestones</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <select id="onboarding-training" class="nx-select text-[11px]"><option value="YES">Training: YES</option><option value="NO">Training: NO</option></select>
+          <select id="onboarding-documents" class="nx-select text-[11px]"><option value="YES">Documents: YES</option><option value="NO">Documents: NO</option></select>
+          <select id="onboarding-system" class="nx-select text-[11px]"><option value="YES">POS Config: YES</option><option value="NO">POS Config: NO</option></select>
+          <select id="onboarding-ready" class="nx-select text-[11px]"><option value="YES">Signage: YES</option><option value="NO">Signage: NO</option></select>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">02</span><span class="form-sec-title">Notes</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <textarea id="onboarding-issues-input" rows="2" class="nx-textarea" placeholder="Issues or observations…"></textarea>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">03</span><span class="form-sec-title">Status</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <select id="onboarding-outcome-select" class="nx-select"><option>Ready For Go Live</option><option>Need More Training</option></select>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">04</span><span class="form-sec-title">Email Automation</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="flex items-center justify-between"><span class="text-[11px] font-bold text-offwhite">Queue onboarding email?</span>
+            <select id="onboarding-send-email" class="nx-select w-16 text-[10px]"><option value="YES">Yes</option><option value="NO">No</option></select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('onboarding-modal')" class="btn-ghost py-2.5 text-[12px] flex-1">Cancel</button>
+      <button onclick="submitOnboardingLog()" class="btn-gold py-2.5 text-[12px] flex-[2]">Save Onboarding</button>
+    </div>
+  </div>
+</div>
+
+<!-- 9. Go Live (+ EMAIL TOGGLE) -->
+<div class="modal-overlay fixed inset-0 flex items-center justify-center px-3 z-[100] cursor-pointer hidden" id="live-modal" onclick="if(event.target===this)closeModal('live-modal')">
+  <div class="modal-sheet modal-sheet-inner w-full max-w-sm flex flex-col max-h-[92vh] cursor-default">
+    <div class="flex items-center justify-between p-4 border-b border-gold/15 shrink-0">
+      <span class="text-[14px] font-extrabold text-gold">Activate Go Live</span>
+      <button onclick="closeModal('live-modal')" class="w-8 h-8 rounded-xl hover:bg-white/5 text-muted hover:text-white flex items-center justify-center transition-colors text-lg leading-none">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="p-3 bg-gold/5 border border-gold/10 rounded-xl text-gold/80 text-[11px] font-medium leading-relaxed">This will update the merchant pipeline to <strong class="text-gold">LIVE</strong>.</div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">01</span><span class="form-sec-title">Launch Date</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <input id="live-date-input" type="date" class="nx-input font-semibold">
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">02</span><span class="form-sec-title">Launch Notes</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <textarea id="live-notes-input" rows="3" class="nx-textarea" placeholder="Launch notes…"></textarea>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">03</span><span class="form-sec-title">Email Automation</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="flex items-center justify-between"><span class="text-[11px] font-bold text-offwhite">Queue go-live email?</span>
+            <select id="live-send-email" class="nx-select w-16 text-[10px]"><option value="YES">Yes</option><option value="NO">No</option></select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('live-modal')" class="btn-ghost py-2.5 text-[12px] flex-1">Cancel</button>
+      <button onclick="submitLiveLog()" class="btn-gold py-2.5 text-[12px] flex-[2]">Confirm Launch</button>
+    </div>
+  </div>
+</div>
+
+<!-- 10. Mark Lost -->
+<div class="modal-overlay fixed inset-0 flex items-center justify-center px-3 z-[100] cursor-pointer hidden" id="lost-modal" onclick="if(event.target===this)closeModal('lost-modal')">
+  <div class="modal-sheet modal-sheet-inner w-full max-w-sm flex flex-col max-h-[92vh] cursor-default">
+    <div class="flex items-center justify-between p-4 border-b border-white/[0.06] shrink-0">
+      <span class="text-[14px] font-extrabold text-muted">Mark Lead Lost</span>
+      <button onclick="closeModal('lost-modal')" class="w-8 h-8 rounded-xl hover:bg-white/5 text-muted hover:text-white flex items-center justify-center transition-colors text-lg leading-none">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">01</span><span class="form-sec-title">Loss Reason</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <select id="lost-reason-select" class="nx-select"><option>Pricing / Fees too high</option><option>Chose Competitor</option><option>Features Missing</option><option>No Response / Stale</option><option>Budget Constraints</option></select>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">02</span><span class="form-sec-title">Details</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <textarea id="lost-details-input" rows="3" class="nx-textarea" placeholder="What happened…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('lost-modal')" class="btn-ghost py-2.5 text-[12px] flex-1">Cancel</button>
+      <button onclick="submitLostLog()" class="btn-gold py-2.5 text-[12px] flex-[2] bg-gradient-to-r from-white/10 to-white/5 text-white border border-white/10 hover:border-danger/30 hover:text-danger transition-all">Confirm Mark Lost</button>
+    </div>
+  </div>
+</div>
+
+<!-- 11. Create Merchant -->
+<div class="modal-overlay fixed inset-0 flex items-center justify-center px-3 z-[100] cursor-pointer hidden" id="create-merchant-drawer" onclick="if(event.target===this)closeModal('create-merchant-drawer')">
+  <div class="modal-sheet modal-sheet-inner w-full max-w-sm flex flex-col max-h-[92vh] cursor-default">
+    <div class="flex items-center justify-between p-4 border-b border-white/[0.06] shrink-0">
+      <span class="text-[14px] font-extrabold text-white">Create Merchant</span>
+      <button onclick="closeModal('create-merchant-drawer')" class="w-8 h-8 rounded-xl hover:bg-white/5 text-muted hover:text-white flex items-center justify-center transition-colors text-lg leading-none">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">01</span><span class="form-sec-title">Identity</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div><label class="flabel">Business Name *</label>
+            <input id="new-mch-name" class="nx-input font-semibold" placeholder="Java House Bistro" type="text"></div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">02</span><span class="form-sec-title">Category</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="flabel">Main</label>
+              <select id="new-mch-main-category" class="nx-select" onchange="updateSubCategories('new-mch-main-category','new-mch-sub-category','new-mch-cat-scope')"><option>Delivery</option><option>Concierge</option><option>Mobility</option><option>Wellness</option><option>Experiences</option></select></div>
+            <div><label class="flabel">Sub</label>
+              <select id="new-mch-sub-category" class="nx-select"></select></div>
+          </div>
+          <div id="new-mch-cat-scope" class="text-[10px] text-muted/40 italic px-1">Category scope…</div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">03</span><span class="form-sec-title">Contact</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="flabel">Person</label><input id="new-mch-contact-person" class="nx-input" placeholder="Jane Doe" type="text"></div>
+            <div><label class="flabel">Position</label><input id="new-mch-position" class="nx-input" placeholder="Manager" type="text"></div>
+            <div><label class="flabel">Phone</label><input id="new-mch-phone" class="nx-input" placeholder="+254…" type="text"></div>
+            <div><label class="flabel">Email</label><input id="new-mch-email" class="nx-input" placeholder="contact@biz.com" type="email"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">04</span><span class="form-sec-title">Branches</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="flabel">Type</label>
+              <select id="new-mch-branch-type" class="nx-select" onchange="toggleNewMerchantBranchFields()"><option>Single</option><option>Multi Branch</option></select></div>
+            <div><label class="flabel"># Branches</label>
+              <input id="new-mch-branches" type="number" min="1" value="1" class="nx-input font-semibold" onchange="renderBranchEntryFields()"></div>
+          </div>
+          <div id="new-mch-multi-branch-section" class="hidden flex flex-col gap-2 bg-white/[0.02] rounded-xl border border-gold/8 p-3">
+            <span class="text-[9px] text-gold/70 font-extrabold uppercase tracking-wider">Per-Branch Details</span>
+            <div id="new-mch-branch-entries" class="flex flex-col gap-2 max-h-40 overflow-y-auto"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">05</span><span class="form-sec-title">Assignment</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="flabel">Region</label><input id="new-mch-region" class="nx-input" placeholder="Nairobi CBD" type="text" value="Nairobi CBD"></div>
+            <div><label class="flabel">Sales Rep</label><input id="new-mch-rep" class="nx-input" placeholder="Peter Kimani" type="text" value="Peter Kimani"></div>
+          </div>
+          <div><label class="flabel">Source</label><input id="new-mch-source" class="nx-input" placeholder="Direct Research" type="text" value="Direct Research"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('create-merchant-drawer')" class="btn-ghost py-2.5 text-[12px] flex-1">Cancel</button>
+      <button onclick="submitCreateMerchant()" class="btn-gold py-2.5 text-[12px] flex-[2]">Create Merchant</button>
+    </div>
+  </div>
+</div>
+
+<!-- 12. Edit Merchant -->
+<div class="modal-overlay fixed inset-0 flex items-center justify-center px-3 z-[100] cursor-pointer hidden" id="edit-merchant-drawer" onclick="if(event.target===this)closeModal('edit-merchant-drawer')">
+  <div class="modal-sheet modal-sheet-inner w-full max-w-sm flex flex-col max-h-[92vh] cursor-default">
+    <div class="flex items-center justify-between p-4 border-b border-white/[0.06] shrink-0">
+      <span class="text-[14px] font-extrabold text-white">Edit Profile</span>
+      <button onclick="closeModal('edit-merchant-drawer')" class="w-8 h-8 rounded-xl hover:bg-white/5 text-muted hover:text-white flex items-center justify-center transition-colors text-lg leading-none">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">01</span><span class="form-sec-title">Identity</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div><label class="flabel">Business Name</label><input id="edit-mch-name" class="nx-input font-semibold" type="text"></div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">02</span><span class="form-sec-title">Category</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="flabel">Main</label>
+              <select id="edit-mch-main-category" class="nx-select" onchange="updateSubCategories('edit-mch-main-category','edit-mch-sub-category','edit-mch-cat-scope')"><option>Delivery</option><option>Concierge</option><option>Mobility</option><option>Wellness</option><option>Experiences</option></select></div>
+            <div><label class="flabel">Sub</label><select id="edit-mch-sub-category" class="nx-select"></select></div>
+          </div>
+          <div id="edit-mch-cat-scope" class="text-[10px] text-muted/40 italic px-1">Category scope…</div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">03</span><span class="form-sec-title">Contact</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="flabel">Person</label><input id="edit-mch-contact-person" class="nx-input" type="text"></div>
+            <div><label class="flabel">Position</label><input id="edit-mch-position" class="nx-input" type="text"></div>
+            <div><label class="flabel">Phone</label><input id="edit-mch-phone" class="nx-input" type="text"></div>
+            <div><label class="flabel">Email</label><input id="edit-mch-email" class="nx-input" type="email"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">04</span><span class="form-sec-title">Branches</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="flabel">Type</label><select id="edit-mch-branch-type" class="nx-select"><option>Single</option><option>Multi Branch</option></select></div>
+            <div><label class="flabel"># Branches</label><input id="edit-mch-branches" type="number" min="1" class="nx-input font-semibold"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="form-step">05</span><span class="form-sec-title">Assignment</span><span class="form-sec-line"></span></div>
+        <div class="form-panel">
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="flabel">Region</label><input id="edit-mch-region" class="nx-input" type="text"></div>
+            <div><label class="flabel">Sales Rep</label><input id="edit-mch-rep" class="nx-input" type="text"></div>
+          </div>
+          <div><label class="flabel">Source</label><input id="edit-mch-source" class="nx-input" type="text"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('edit-merchant-drawer')" class="btn-ghost py-2.5 text-[12px] flex-1">Cancel</button>
+      <button onclick="submitEditMerchant()" class="btn-gold py-2.5 text-[12px] flex-[2]">Save Changes</button>
+    </div>
+  </div>
+</div>

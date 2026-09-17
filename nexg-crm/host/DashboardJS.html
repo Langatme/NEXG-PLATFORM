@@ -1,0 +1,236 @@
+<script>
+  (function () {
+    function qs(selector) {
+      return document.querySelector(selector);
+    }
+
+    function escapeHtml(value) {
+      return String(value === null || value === undefined ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function formatDate(value) {
+      if (!value) return '-';
+
+      var date = new Date(value);
+
+      if (isNaN(date.getTime())) {
+        return escapeHtml(value);
+      }
+
+      return date.toLocaleString();
+    }
+
+    function init() {
+      load();
+    }
+
+    function load() {
+      google.script.run
+        .withSuccessHandler(render)
+        .withFailureHandler(renderError)
+        .NEXG_api({ route: 'panel.dashboard', payload: {} });
+    }
+
+    function render(response) {
+      if (!response.success) {
+        renderError(response.error ? response.error.message : 'Unknown error.');
+        return;
+      }
+
+      var data = response.data;
+
+      qs('#metricTotal').textContent = data.totals.total;
+      qs('#metricActive').textContent = data.totals.active;
+      qs('#metricLive').textContent = data.totals.live;
+      qs('#metricArchived').textContent = data.totals.archived;
+
+      renderFunnel(data.stageFunnel || []);
+      renderTrend(data.trend || []);
+      renderEmail(data.emailStats || {});
+      renderBoard(data.leaderboard || []);
+      renderFollowUps(data.followUpsDue || []);
+      renderActivity(data.recentActivity || []);
+
+      var tbody = qs('#dashboardHostsTableBody');
+
+      if (!data.recentHosts.length) {
+        tbody.innerHTML =
+          '<tr>' +
+            '<td colspan="5" class="nx-table__empty">' +
+              'No hosts found. Use the Smart Panel sidebar to create your first host.' +
+            '</td>' +
+          '</tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.recentHosts
+        .map(function (host) {
+          return (
+            '<tr>' +
+              '<td>' + escapeHtml(host.hostName || 'Unknown Host') + '</td>' +
+              '<td><span class="nx-chip nx-chip--primary">' + escapeHtml(host.stage || 'lead') + '</span></td>' +
+              '<td><span class="nx-chip nx-chip--success">' + escapeHtml(host.lifecycleStatus || 'Active') + '</span></td>' +
+              '<td>' + escapeHtml(host.owner || '-') + '</td>' +
+              '<td>' + formatDate(host.createdAt) + '</td>' +
+            '</tr>'
+          );
+        })
+        .join('');
+    }
+
+    function renderFunnel(funnel) {
+      var el = qs('#dashFunnel');
+      if (!el) return;
+      if (!funnel.length) {
+        el.innerHTML = '<div class="nx-text-muted">No pipeline data yet.</div>';
+        return;
+      }
+      var max = 1;
+      funnel.forEach(function (s) { max = Math.max(max, s.count || 0); });
+      el.innerHTML = funnel
+        .map(function (s) {
+          var v = s.count || 0;
+          return (
+            '<div class="nx-funnel-row"><span class="nx-funnel-label">' + escapeHtml(s.label) + '</span>' +
+            '<div class="nx-funnel-bar"><div style="width:' + Math.round((v / max) * 100) + '%"></div></div>' +
+            '<span class="nx-funnel-count">' + v + '</span></div>'
+          );
+        })
+        .join('');
+    }
+
+    function renderTrend(trend) {
+      var el = qs('#dashTrend');
+      if (!el) return;
+      if (!trend.length) {
+        el.innerHTML = '<div class="nx-text-muted">No trend data yet.</div>';
+        return;
+      }
+      var max = 1;
+      trend.forEach(function (w) { max = Math.max(max, w.activities || 0); });
+      el.innerHTML = trend
+        .map(function (w) {
+          var v = w.activities || 0;
+          return (
+            '<div class="nx-funnel-row"><span class="nx-funnel-label">' + escapeHtml(w.week) + '</span>' +
+            '<div class="nx-funnel-bar"><div style="width:' + Math.round((v / max) * 100) + '%"></div></div>' +
+            '<span class="nx-funnel-count">' + v + '</span></div>'
+          );
+        })
+        .join('');
+    }
+
+    function renderEmail(stats) {
+      var map = { mSent: stats.sent || 0, mOpened: stats.opened || 0, mReplied: stats.replied || 0, mFailed: stats.failed || 0 };
+      Object.keys(map).forEach(function (id) {
+        var el = qs('#' + id);
+        if (el) el.textContent = map[id];
+      });
+    }
+
+    function renderBoard(rows) {
+      var tbody = qs('#dashBoard');
+      if (!tbody) return;
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="3" class="nx-table__empty">No owners yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows
+        .map(function (r) {
+          return (
+            '<tr>' +
+              '<td>' + escapeHtml(r.owner || '-') + '</td>' +
+              '<td>' + (r.hosts || 0) + '</td>' +
+              '<td><span class="nx-chip nx-chip--success">' + (r.live || 0) + ' live</span></td>' +
+            '</tr>'
+          );
+        })
+        .join('');
+    }
+
+    function renderFollowUps(items) {
+      var tbody = qs('#dashFollowUps');
+      if (!tbody) return;
+      if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="nx-table__empty">Nothing due. Enjoy the quiet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = items
+        .map(function (f) {
+          return (
+            '<tr>' +
+              '<td>' + escapeHtml(f.hostName || '-') + '</td>' +
+              '<td>' + escapeHtml(f.subject || 'Follow-up') + '</td>' +
+              '<td>' + formatDate(f.dueAt) + '</td>' +
+              '<td>' + (f.overdue ? '<span class="nx-chip nx-chip--danger">Overdue</span>' : '<span class="nx-chip nx-chip--warning">Due</span>') + '</td>' +
+            '</tr>'
+          );
+        })
+        .join('');
+    }
+
+    function renderActivity(items) {
+      var tbody = qs('#dashActivity');
+      if (!tbody) return;
+      if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="3" class="nx-table__empty">No activity yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = items
+        .map(function (a) {
+          return (
+            '<tr>' +
+              '<td>' + formatDate(a.createdAt) + '</td>' +
+              '<td>' + escapeHtml(a.hostName || '-') + '</td>' +
+              '<td>' + escapeHtml(a.subject || a.type || '') + '</td>' +
+            '</tr>'
+          );
+        })
+        .join('');
+    }
+
+    function renderError(message) {
+      qs('#metricTotal').textContent = '-';
+      qs('#metricActive').textContent = '-';
+      qs('#metricLive').textContent = '-';
+      qs('#metricArchived').textContent = '-';
+
+      qs('#dashboardHostsTableBody').innerHTML =
+        '<tr>' +
+          '<td colspan="5" class="nx-table__empty">' +
+            escapeHtml(message || 'Dashboard failed to load.') +
+          '</td>' +
+        '</tr>';
+
+      var funnel = qs('#dashFunnel');
+      if (funnel) funnel.innerHTML = '<div class="nx-text-muted">Dashboard failed to load.</div>';
+      var trend = qs('#dashTrend');
+      if (trend) trend.innerHTML = '<div class="nx-text-muted">Dashboard failed to load.</div>';
+      var board = qs('#dashBoard');
+      if (board) board.innerHTML = '<tr><td colspan="3" class="nx-table__empty">Dashboard failed to load.</td></tr>';
+      var fu = qs('#dashFollowUps');
+      if (fu) fu.innerHTML = '<tr><td colspan="4" class="nx-table__empty">Dashboard failed to load.</td></tr>';
+      var act = qs('#dashActivity');
+      if (act) act.innerHTML = '<tr><td colspan="3" class="nx-table__empty">Dashboard failed to load.</td></tr>';
+
+      if (window.NEXG_UI && NEXG_UI.toast) {
+        NEXG_UI.toast({
+          variant: 'error',
+          title: 'Dashboard failed to load',
+          message: message || 'Unknown error.'
+        });
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+</script>

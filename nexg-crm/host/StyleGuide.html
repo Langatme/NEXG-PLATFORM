@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>NEXG CRM — Design System</title>
+
+  <?!= NEXG_include('Theme'); ?>
+  <?!= NEXG_include('CSS'); ?>
+  <?!= NEXG_include('Motion'); ?>
+  <?!= NEXG_include('Components'); ?>
+  <?!= NEXG_include('Forms'); ?>
+  <?!= NEXG_include('Cards'); ?>
+  <?!= NEXG_include('Tables'); ?>
+  <?!= NEXG_include('Modals'); ?>
+  <?!= NEXG_include('Sidebar'); ?>
+</head>
+<body>
+  <a class="nx-visually-hidden" href="#main-content">Skip to content</a>
+
+  <div class="nx-app" id="nxApp">
+    <aside class="nx-sidebar" aria-label="Primary navigation">
+      <div class="nx-sidebar__brand">
+        <span class="material-symbols-outlined">hub</span>
+        <span class="nx-sidebar__label">NEXG</span>
+      </div>
+
+      <nav class="nx-sidebar__nav">
+        <a class="nx-nav__item is-active" href="?page=styleguide">
+          <span class="material-symbols-outlined">home</span>
+          <span class="nx-nav__label">Home</span>
+        </a>
+
+        <a class="nx-nav__item" href="?page=operations">
+          <span class="material-symbols-outlined">precision_manufacturing</span>
+          <span class="nx-nav__label">Operations</span>
+        </a>
+
+        <a class="nx-nav__item" href="?page=insights">
+          <span class="material-symbols-outlined">monitoring</span>
+          <span class="nx-nav__label">Insights</span>
+          <span class="nx-badge nx-nav__badge">2</span>
+        </a>
+
+        <a class="nx-nav__item" href="?page=dashboard">
+          <span class="material-symbols-outlined">dashboard</span>
+          <span class="nx-nav__label">Dashboard</span>
+        </a>
+      </nav>
+
+      <div class="nx-sidebar__footer">
+        <a class="nx-nav__item" href="?page=settings">
+          <span class="material-symbols-outlined">settings</span>
+          <span class="nx-nav__label">Settings</span>
+        </a>
+      </div>
+    </aside>
+
+    <div class="nx-main">
+      <header class="nx-topbar">
+        <button
+          class="nx-button nx-button--ghost nx-button--icon"
+          data-nx-collapse-sidebar
+          aria-expanded="true"
+          aria-label="Toggle sidebar"
+        >
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+
+        <div class="nx-topbar__search">
+          <span class="material-symbols-outlined">search</span>
+          <input
+            type="text"
+            placeholder="Search hosts, meetings, emails"
+            aria-label="Global search"
+            data-nx-search-input
+          >
+        </div>
+
+        <div class="nx-flex nx-gap-2">
+          <button
+            class="nx-button nx-button--primary"
+            data-nx-open-overlay="#modal-new-host"
+          >
+            <span class="material-symbols-outlined">add</span>
+            New Host
+          </button>
+
+          <div class="nx-dropdown">
+            <button
+              class="nx-button nx-button--ghost nx-button--icon"
+              data-nx-dropdown
+              aria-expanded="false"
+              aria-label="Notifications"
+            >
+              <span class="material-symbols-outlined">notifications</span>
+              <span class="nx-badge">3</span>
+            </button>
+
+            <div class="nx-dropdown__menu">
+              <button class="nx-menu-item">
+                <span class="material-symbols-outlined">event</span>
+                Meeting reminder
+              </button>
+
+              <button class="nx-menu-item">
+                <span class="material-symbols-outlined">call</span>
+                Follow-up due
+              </button>
+
+              <button class="nx-menu-item">
+                <span class="material-symbols-outlined">mail</span>
+                Email opened
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="nx-content" id="main-content">
+        <section class="nx-page-header">
+          <div>
+            <h1 class="nx-page-header__title">Design System</h1>
+            <p class="nx-page-header__subtitle">
+              Contract 2 visual and interaction foundation for NEXG CRM.
+            </p>
+          </div>
+
+          <div class="nx-flex nx-gap-2">
+            <button
+              class="nx-button nx-button--secondary"
+              data-nx-open-overlay="#drawer-demo"
+            >
+              Open Drawer
+            </button>
+
+            <button
+              class="nx-button nx-button--secondary"
+              data-nx-open-overlay="#modal-confirm"
+            >
+              Confirmation Dialog
+            </button>
+          </div>
+        </section>
+
+        <section class="nx-section">
+          <h2 class="nx-section__title">Buttons</h2>
+
+          <div class="nx-panel">
+            <div class="nx-flex nx-flex--wrap nx-gap-2">
+              <button class="nx-button nx-button--primary">Primary</button>
+              <button class="nx-button nx-button--secondary">Secondary</button>
+              <button class="nx-button nx-button--ghost">Ghost</button>
+              <button class="nx-button nx-button--danger">Danger</button>
+              <button class="nx-button nx-button--success">Success</button>
+
+              <button class="nx-button nx-button--secondary is-loading">
+                Loading
+              </button>
+
+              <button class="nx-button nx-button--secondary" disabled>
+                Disabled
+              </button>
+
+              <button class="nx-button nx-button--secondary nx-button--icon">
+                <span class="material-symbols-outlined">more_vert</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="nx-section">
+          <h2 class="nx-section__title">Form Controls</h2>
+
+          <div class="nx-grid">
+            <div class="nx-col-6 nx-panel">
+              <div class="nx-field">
+                <label class="nx-field__label" for="host-name">
+                  Host Name
+                  <span class="nx-field__required">*</span>
+                </label>
+
+                <input
+                  id="host-name"
+                  class="nx-input"
+                  type="text"
+                  placeholder="Aurora Cafe"
+                >
+
+                <div class="nx-field__helper">
+                  Use the legal or public business name.
+                </div>
+
+                <div class="nx-field__error">
+                  Host name is required.
+                </div>
+              </div>
+
+              <div class="nx-field">
+                <label class="nx-field__label" for="host-stage">
+                  Stage
+                </label>
+
+                <select id="host-stage" class="nx-select">
+                  <option>Lead</option>
+                  <option>Discovery</option>
+                  <option>Qualified</option>
+                  <option>Proposal</option>
+                  <option>Live</option>
+                </select>
+              </div>
+
+              <div class="nx-field is-invalid">
+                <label class="nx-field__label" for="host-email">
+                  Email
+                </label>
+
+                <input
+                  id="host-email"
+                  class="nx-input"
+                  type="email"
+                  value="invalid-email"
+                >
+
+                <div class="nx-field__helper">
+                  Primary contact email.
+                </div>
+
+                <div class="nx-field__error">
+                  Email must be a valid address.
+                </div>
+              </div>
+            </div>
+
+            <div class="nx-col-6 nx-panel">
+              <label class="nx-checkbox">
+                <input type="checkbox" checked>
+                Include in weekly queue
+              </label>
+
+              <label class="nx-switch">
+                <input type="checkbox" checked>
+                <span class="nx-switch__track">
+                  <span class="nx-switch__thumb"></span>
+                </span>
+                Auto follow-up
+              </label>
+
+              <div class="nx-radio-group">
+                <label class="nx-radio">
+                  <input type="radio" name="priority" checked>
+                  Normal priority
+                </label>
+
+                <label class="nx-radio">
+                  <input type="radio" name="priority">
+                  High priority
+                </label>
+              </div>
+
+              <div class="nx-field nx-mt-4">
+                <label class="nx-field__label" for="notes">
+                  Notes
+                </label>
+
+                <textarea
+                  id="notes"
+                  class="nx-textarea"
+                  placeholder="Add relationship notes"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="nx-section">
+          <h2 class="nx-section__title">Feedback</h2>
+
+          <div class="nx-grid">
+            <div class="nx-col-6 nx-panel">
+              <div class="nx-flex nx-flex--wrap nx-gap-2">
+                <button
+                  class="nx-button nx-button--secondary"
+                  data-nx-toast
+                  data-nx-toast-variant="success"
+                  data-nx-toast-title="Host saved"
+                  data-nx-toast-message="The host record was updated."
+                >
+                  Success Toast
+                </button>
+
+                <button
+                  class="nx-button nx-button--secondary"
+                  data-nx-toast
+                  data-nx-toast-variant="error"
+                  data-nx-toast-title="Save failed"
+                  data-nx-toast-message="Check required fields and try again."
+                >
+                  Error Toast
+                </button>
+
+                <button
+                  class="nx-button nx-button--secondary"
+                  data-nx-toast
+                  data-nx-toast-variant="warning"
+                  data-nx-toast-title="Follow-up overdue"
+                  data-nx-toast-message="This host needs attention."
+                >
+                  Warning Toast
+                </button>
+              </div>
+            </div>
+
+            <div class="nx-col-6 nx-panel">
+              <div class="nx-alert nx-alert--info">
+                <div class="nx-alert__icon">
+                  <span class="material-symbols-outlined">info</span>
+                </div>
+
+                <div>
+                  <div class="nx-alert__title">System notice</div>
+                  <div class="nx-alert__message">
+                    Dashboard data refreshes automatically.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="nx-section">
+          <h2 class="nx-section__title">Cards</h2>
+
+          <div class="nx-grid">
+            <div class="nx-col-3">
+              <div class="nx-card nx-card--metric">
+                <div class="nx-card__body">
+                  <div class="nx-text-muted">Active Hosts</div>
+                  <div class="nx-card__value">128</div>
+                  <div class="nx-card__trend">+12 this week</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="nx-col-3">
+              <div class="nx-card nx-card--metric">
+                <div class="nx-card__body">
+                  <div class="nx-text-muted">Meetings Today</div>
+                  <div class="nx-card__value">6</div>
+                  <div class="nx-card__trend is-down">2 overdue</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="nx-col-3">
+              <div class="nx-card">
+                <div class="nx-card__header">
+                  <div>
+                    <h3 class="nx-card__title">Aurora Cafe</h3>
+                    <div class="nx-card__subtitle">Host Relationship</div>
+                  </div>
+
+                  <span class="nx-chip nx-chip--primary">Qualified</span>
+                </div>
+
+                <div class="nx-card__body">
+                  <div class="nx-list">
+                    <div class="nx-list__row">
+                      <span class="nx-list__label">Owner</span>
+                      <span class="nx-list__value">Sarah Kim</span>
+                    </div>
+
+                    <div class="nx-list__row">
+                      <span class="nx-list__label">Phone</span>
+                      <span class="nx-list__value">+1 555 000 1111</span>
+                    </div>
+
+                    <div class="nx-list__row">
+                      <span class="nx-list__label">Next Follow-up</span>
+                      <span class="nx-list__value">Today</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="nx-card__footer">
+                  <button class="nx-button nx-button--secondary">
+                    <span class="material-symbols-outlined">call</span>
+                    Call
+                  </button>
+
+                  <button class="nx-button nx-button--secondary">
+                    <span class="material-symbols-outlined">event</span>
+                    Meeting
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="nx-col-3">
+              <div class="nx-card">
+                <div class="nx-card__header">
+                  <div>
+                    <h3 class="nx-card__title">Follow-up Queue</h3>
+                    <div class="nx-card__subtitle">Operational Queue</div>
+                  </div>
+                </div>
+
+                <div class="nx-card__body">
+                  <div class="nx-list">
+                    <div class="nx-list__row">
+                      <span class="nx-list__label">Due Today</span>
+                      <span class="nx-list__value">8</span>
+                    </div>
+
+                    <div class="nx-list__row">
+                      <span class="nx-list__label">Overdue</span>
+                      <span class="nx-list__value">3</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="nx-card__footer">
+                  <button class="nx-button nx-button--primary">
+                    Open Queue
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="nx-section">
+          <h2 class="nx-section__title">Smart Components</h2>
+
+          <div class="nx-grid">
+            <div class="nx-col-8 nx-panel">
+              <h3 class="nx-card__title">Journey</h3>
+
+              <div class="nx-journey" aria-label="Host acquisition journey">
+                <div class="nx-journey__step is-completed">
+                  <span class="nx-journey__dot">
+                    <span class="material-symbols-outlined">check</span>
+                  </span>
+                  <span class="nx-journey__label">Lead</span>
+                </div>
+
+                <div class="nx-journey__line is-complete"></div>
+
+                <div class="nx-journey__step is-completed">
+                  <span class="nx-journey__dot">
+                    <span class="material-symbols-outlined">check</span>
+                  </span>
+                  <span class="nx-journey__label">Discovery</span>
+                </div>
+
+                <div class="nx-journey__line is-complete"></div>
+
+                <div class="nx-journey__step is-current" aria-current="step">
+                  <span class="nx-journey__dot">
+                    <span class="material-symbols-outlined">flag</span>
+                  </span>
+                  <span class="nx-journey__label">Qualified</span>
+                </div>
+
+                <div class="nx-journey__line"></div>
+
+                <div class="nx-journey__step">
+                  <span class="nx-journey__dot">
+                    <span class="material-symbols-outlined">description</span>
+                  </span>
+                  <span class="nx-journey__label">Proposal</span>
+                </div>
+
+                <div class="nx-journey__line"></div>
+
+                <div class="nx-journey__step">
+                  <span class="nx-journey__dot">
+                    <span class="material-symbols-outlined">rocket_launch</span>
+                  </span>
+                  <span class="nx-journey__label">Live</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="nx-col-4 nx-panel">
+              <h3 class="nx-card__title">Timeline</h3>
+
+              <div class="nx-timeline">
+                <div class="nx-timeline__item">
+                  <div class="nx-timeline__icon">
+                    <span class="material-symbols-outlined">call</span>
+                  </div>
+
+                  <div>
+                    <div class="nx-timeline__title">Call logged</div>
+                    <div class="nx-timeline__meta">
+                      Today 10:32 • Outcome: Interested
+                    </div>
+                  </div>
+                </div>
+
+                <div class="nx-timeline__item">
+                  <div class="nx-timeline__icon">
+                    <span class="material-symbols-outlined">event</span>
+                  </div>
+
+                  <div>
+                    <div class="nx-timeline__title">Meeting scheduled</div>
+                    <div class="nx-timeline__meta">
+                      Tomorrow 14:00 • On-site visit
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="nx-section">
+          <h2 class="nx-section__title">Table</h2>
+
+          <div class="nx-table-container nx-table-responsive" data-nx-interactive>
+            <div class="nx-table__toolbar">
+              <div class="nx-flex nx-gap-2">
+                <span class="nx-chip nx-chip--primary">Hosts</span>
+                <span class="nx-text-muted">8 records</span>
+              </div>
+
+              <div class="nx-flex nx-gap-2">
+                <button class="nx-button nx-button--secondary">
+                  <span class="material-symbols-outlined">filter_list</span>
+                  Filter
+                </button>
+
+                <button class="nx-button nx-button--secondary">
+                  <span class="material-symbols-outlined">download</span>
+                  Export
+                </button>
+              </div>
+            </div>
+
+            <div class="nx-table__bulk" data-nx-bulk-bar hidden>
+              <span data-nx-bulk-count>0 selected</span>
+
+              <button class="nx-button nx-button--secondary">
+                Export Selected
+              </button>
+            </div>
+
+            <div class="nx-table-scroll">
+              <table class="nx-table">
+                <thead>
+                  <tr>
+                    <th>
+                      <input type="checkbox" data-nx-select-all aria-label="Select all hosts">
+                    </th>
+                    <th data-nx-sort>Host</th>
+                    <th data-nx-sort>Stage</th>
+                    <th data-nx-sort>Owner</th>
+                    <th data-nx-sort>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr>
+                    <td data-label="Select">
+                      <input type="checkbox" data-nx-row-select aria-label="Select Aurora Cafe">
+                    </td>
+                    <td data-label="Host">Aurora Cafe</td>
+                    <td data-label="Stage">
+                      <span class="nx-chip nx-chip--primary">Qualified</span>
+                    </td>
+                    <td data-label="Owner">Sarah Kim</td>
+                    <td data-label="Status">
+                      <span class="nx-chip nx-chip--success">Active</span>
+                    </td>
+                    <td data-label="Actions">
+                      <div class="nx-dropdown">
+                        <button
+                          class="nx-button nx-button--ghost nx-button--icon"
+                          data-nx-dropdown
+                          aria-expanded="false"
+                          aria-label="Row actions"
+                        >
+                          <span class="material-symbols-outlined">more_vert</span>
+                        </button>
+
+                        <div class="nx-dropdown__menu">
+                          <button class="nx-menu-item">
+                            <span class="material-symbols-outlined">open_in_new</span>
+                            Open
+                          </button>
+
+                          <button class="nx-menu-item">
+                            <span class="material-symbols-outlined">edit</span>
+                            Edit
+                          </button>
+
+                          <button class="nx-menu-item">
+                            <span class="material-symbols-outlined">archive</span>
+                            Archive
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td data-label="Select">
+                      <input type="checkbox" data-nx-row-select aria-label="Select Harbor Grill">
+                    </td>
+                    <td data-label="Host">Harbor Grill</td>
+                    <td data-label="Stage">
+                      <span class="nx-chip">Lead</span>
+                    </td>
+                    <td data-label="Owner">Daniel Ross</td>
+                    <td data-label="Status">
+                      <span class="nx-chip nx-chip--warning">Follow-up Due</span>
+                    </td>
+                    <td data-label="Actions">
+                      <div class="nx-dropdown">
+                        <button
+                          class="nx-button nx-button--ghost nx-button--icon"
+                          data-nx-dropdown
+                          aria-expanded="false"
+                          aria-label="Row actions"
+                        >
+                          <span class="material-symbols-outlined">more_vert</span>
+                        </button>
+
+                        <div class="nx-dropdown__menu">
+                          <button class="nx-menu-item">
+                            <span class="material-symbols-outlined">open_in_new</span>
+                            Open
+                          </button>
+
+                          <button class="nx-menu-item">
+                            <span class="material-symbols-outlined">edit</span>
+                            Edit
+                          </button>
+
+                          <button class="nx-menu-item">
+                            <span class="material-symbols-outlined">archive</span>
+                            Archive
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="nx-table__footer">
+              <span>Showing 2 of 8</span>
+              <button class="nx-button nx-button--ghost">Load more</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="nx-section">
+          <h2 class="nx-section__title">States</h2>
+
+          <div class="nx-grid">
+            <div class="nx-col-4">
+              <div class="nx-empty">
+                <div class="nx-empty__icon">
+                  <span class="material-symbols-outlined">group_add</span>
+                </div>
+
+                <div class="nx-empty__title">No Hosts Yet</div>
+
+                <div class="nx-empty__message">
+                  Add your first host to begin tracking the acquisition pipeline.
+                </div>
+
+                <button class="nx-button nx-button--primary">
+                  New Host
+                </button>
+              </div>
+            </div>
+
+            <div class="nx-col-4">
+              <div class="nx-card">
+                <div class="nx-card__body">
+                  <div class="nx-skeleton nx-skeleton--title"></div>
+                  <div class="nx-skeleton nx-skeleton--text"></div>
+                  <div class="nx-skeleton nx-skeleton--text"></div>
+                  <div class="nx-skeleton nx-skeleton--button"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="nx-col-4">
+              <div class="nx-alert nx-alert--danger">
+                <div class="nx-alert__icon">
+                  <span class="material-symbols-outlined">error</span>
+                </div>
+
+                <div>
+                  <div class="nx-alert__title">Save failed</div>
+
+                  <div class="nx-alert__message">
+                    There was a problem saving the record. Retry or check validation.
+                  </div>
+
+                  <button class="nx-button nx-button--danger nx-mt-2">
+                    Retry
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal: New Host -->
+  <div
+    class="nx-overlay"
+    id="modal-new-host"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-new-host-title"
+    aria-hidden="true"
+    tabindex="-1"
+  >
+    <div class="nx-overlay__container">
+      <div class="nx-modal">
+        <div class="nx-modal__header">
+          <div>
+            <h2 class="nx-modal__title" id="modal-new-host-title">
+              New Host
+            </h2>
+
+            <div class="nx-modal__subtitle">
+              Capture the minimum required details to create a lead.
+            </div>
+          </div>
+
+          <button
+            class="nx-button nx-button--ghost nx-button--icon"
+            data-nx-close-overlay
+            aria-label="Close dialog"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="nx-modal__body">
+          <div class="nx-field">
+            <label class="nx-field__label" for="new-host-name">
+              Host Name
+              <span class="nx-field__required">*</span>
+            </label>
+
+            <input
+              id="new-host-name"
+              class="nx-input"
+              type="text"
+              placeholder="Aurora Cafe"
+            >
+          </div>
+
+          <div class="nx-grid">
+            <div class="nx-col-6">
+              <div class="nx-field">
+                <label class="nx-field__label" for="new-host-phone">
+                  Phone
+                </label>
+
+                <input
+                  id="new-host-phone"
+                  class="nx-input"
+                  type="tel"
+                  placeholder="+1 555 000 1111"
+                >
+              </div>
+            </div>
+
+            <div class="nx-col-6">
+              <div class="nx-field">
+                <label class="nx-field__label" for="new-host-source">
+                  Lead Source
+                </label>
+
+                <select id="new-host-source" class="nx-select">
+                  <option>Field Agent</option>
+                  <option>Referral</option>
+                  <option>Inbound</option>
+                  <option>Import</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="nx-field">
+            <label class="nx-field__label" for="new-host-notes">
+              Notes
+            </label>
+
+            <textarea
+              id="new-host-notes"
+              class="nx-textarea"
+              placeholder="Initial notes"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="nx-modal__footer">
+          <button class="nx-button nx-button--secondary" data-nx-close-overlay>
+            Cancel
+          </button>
+
+          <button
+            class="nx-button nx-button--primary"
+            data-nx-close-overlay
+            data-nx-toast
+            data-nx-toast-variant="success"
+            data-nx-toast-title="Host saved"
+            data-nx-toast-message="The new host was created."
+          >
+            Save Host
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drawer -->
+  <div
+    class="nx-overlay nx-overlay--drawer"
+    id="drawer-demo"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="drawer-demo-title"
+    aria-hidden="true"
+    tabindex="-1"
+  >
+    <div class="nx-overlay__container">
+      <div class="nx-drawer">
+        <div class="nx-drawer__header">
+          <div>
+            <h2 class="nx-drawer__title" id="drawer-demo-title">
+              Host Details
+            </h2>
+
+            <div class="nx-text-secondary nx-text-small nx-mt-1">
+              Read-only preview drawer
+            </div>
+          </div>
+
+          <button
+            class="nx-button nx-button--ghost nx-button--icon"
+            data-nx-close-overlay
+            aria-label="Close drawer"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="nx-drawer__body">
+          <div class="nx-list">
+            <div class="nx-list__row">
+              <span class="nx-list__label">Host</span>
+              <span class="nx-list__value">Aurora Cafe</span>
+            </div>
+
+            <div class="nx-list__row">
+              <span class="nx-list__label">Stage</span>
+              <span class="nx-list__value">
+                <span class="nx-chip nx-chip--primary">Qualified</span>
+              </span>
+            </div>
+
+            <div class="nx-list__row">
+              <span class="nx-list__label">Owner</span>
+              <span class="nx-list__value">Sarah Kim</span>
+            </div>
+
+            <div class="nx-list__row">
+              <span class="nx-list__label">Last Contact</span>
+              <span class="nx-list__value">Today 10:32</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="nx-drawer__footer">
+          <button class="nx-button nx-button--secondary" data-nx-close-overlay>
+            Close
+          </button>
+
+          <button
+            class="nx-button nx-button--primary"
+            data-nx-close-overlay
+            data-nx-toast
+            data-nx-toast-variant="info"
+            data-nx-toast-title="Action queued"
+            data-nx-toast-message="This action will be handled by Contract 3."
+          >
+            Open in Smart Panel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div
+    class="nx-overlay"
+    id="modal-confirm"
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="modal-confirm-title"
+    aria-hidden="true"
+    tabindex="-1"
+  >
+    <div class="nx-overlay__container">
+      <div class="nx-modal nx-modal--sm">
+        <div class="nx-modal__header">
+          <div>
+            <h2 class="nx-modal__title" id="modal-confirm-title">
+              Archive Host?
+            </h2>
+
+            <div class="nx-modal__subtitle">
+              This will archive Aurora Cafe. No records are deleted.
+            </div>
+          </div>
+
+          <button
+            class="nx-button nx-button--ghost nx-button--icon"
+            data-nx-close-overlay
+            aria-label="Close confirmation dialog"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="nx-modal__footer">
+          <button class="nx-button nx-button--secondary" data-nx-close-overlay>
+            Cancel
+          </button>
+
+          <button
+            class="nx-button nx-button--danger"
+            data-nx-close-overlay
+            data-nx-toast
+            data-nx-toast-variant="success"
+            data-nx-toast-title="Host archived"
+            data-nx-toast-message="Aurora Cafe was archived."
+          >
+            Archive
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="nx-toast-region" class="nx-toast-region" aria-live="polite"></div>
+
+  <?!= NEXG_include('MotionJS'); ?>
+</body>
+</html>

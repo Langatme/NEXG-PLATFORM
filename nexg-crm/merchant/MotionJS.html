@@ -1,0 +1,114 @@
+<script>
+/***********************************************************************
+ * NEXG MOTION CONTROLLER — loads AFTER JS.html
+ * Wraps existing globals; zero edits to the original controller.
+ ***********************************************************************/
+(function () {
+
+  /* ── Ripple on press ─────────────────────────────────────────── */
+  document.addEventListener('pointerdown', function (e) {
+    var t = e.target.closest('.btn-gold,.action-btn,.workflow-btn,.stat-card');
+    if (!t) return;
+    var r = t.getBoundingClientRect();
+    var size = Math.max(r.width, r.height);
+    var s = document.createElement('span');
+    s.className = 'nx-ripple';
+    s.style.width = s.style.height = size + 'px';
+    s.style.left = (e.clientX - r.left - size / 2) + 'px';
+    s.style.top  = (e.clientY - r.top  - size / 2) + 'px';
+    t.appendChild(s);
+    setTimeout(function () { s.remove(); }, 520);
+  });
+
+  /* ── Count-up stat numbers ───────────────────────────────────── */
+  window.nxSetStat = function (id, target) {
+    var el = document.getElementById(id); if (!el) return;
+    var from = parseInt(el.dataset.v || '0', 10) || 0;
+    el.dataset.v = target;
+    if (from === target) { el.innerText = target; return; }
+    el.classList.remove('nx-pop'); void el.offsetWidth; el.classList.add('nx-pop');
+    var t0 = performance.now(), dur = 480;
+    (function tick(now) {
+      var p = Math.min((now - t0) / dur, 1);
+      el.innerText = Math.round(from + (target - from) * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) requestAnimationFrame(tick);
+    })(t0);
+  };
+
+  /* ── Helpers ─────────────────────────────────────────────────── */
+  window.nxFlash = function (el) {
+    if (!el) return;
+    el.classList.remove('nx-flash'); void el.offsetWidth; el.classList.add('nx-flash');
+  };
+
+  var SKEL = ['mch-display-name','mch-detail-email','mch-detail-contact-person',
+              'mch-detail-phone','mch-detail-rep'], _skT;
+  window.nxSkeleton = function (on) {
+    SKEL.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('nx-skeleton', !!on);
+    });
+    if (on) { clearTimeout(_skT); _skT = setTimeout(function(){ nxSkeleton(false); }, 4000); }
+  };
+
+  window.nxCelebrate = function () {
+    for (var i = 0; i < 26; i++) {
+      var p = document.createElement('span');
+      p.className = 'nx-spark';
+      p.style.left = (8 + Math.random() * 84) + 'vw';
+      p.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px');
+      p.style.setProperty('--dl', (Math.random() * .35) + 's');
+      p.style.setProperty('--sz', (3 + Math.random() * 4) + 'px');
+      document.body.appendChild(p);
+      setTimeout(function (el) { return function(){ el.remove(); }; }(p), 1800);
+    }
+  };
+
+  /* ── Double-submit guard (protects sheet integrity) ──────────── */
+  window.nxLock = function (btn) {
+    if (!btn || btn.dataset.locked) return false;
+    btn.dataset.locked = '1'; btn.dataset.label = btn.innerText;
+    btn.innerText = 'Saving…'; btn.style.opacity = '.7'; btn.style.pointerEvents = 'none';
+    return true;
+  };
+  window.nxUnlock = function (btn) {
+    if (!btn) return;
+    delete btn.dataset.locked;
+    if (btn.dataset.label) btn.innerText = btn.dataset.label;
+    btn.style.opacity = ''; btn.style.pointerEvents = '';
+  };
+
+  /* ── Wrappers (this is what makes it zero-edit) ──────────────── */
+  var _setTxt = window.setTxt;
+  window.setTxt = function (id, v) {
+    if (id && id.indexOf('stat-') === 0) { nxSetStat(id, Number(v) || 0); return; }
+    _setTxt(id, v);
+  };
+
+  var _prevStage = null;
+  var _updateUI = window.updateUI;
+  window.updateUI = function () {
+    _updateUI();
+    if (_prevStage !== null && _prevStage !== currentMerchant.pipeline) {
+      nxFlash(document.getElementById('mini-pipeline-track'));
+      nxFlash(document.getElementById('mch-display-badge'));
+    }
+    _prevStage = currentMerchant.pipeline;
+  };
+
+  var _showToast = window.showToast;
+  window.showToast = function (msg) {
+    nxSkeleton(false);
+    var el = document.getElementById('toast-notification');
+    if (el) { el.classList.remove('show'); void el.offsetWidth; }  /* restart progress bar */
+    _showToast(msg);
+  };
+
+  var _refresh = window.refreshActiveSheetRow;
+  window.refreshActiveSheetRow = function () { nxSkeleton(true); _refresh(); };
+
+  var _apply = window.applyProfile;
+  window.applyProfile = function (p) { nxSkeleton(false); _apply(p); };
+
+})();
+</script>

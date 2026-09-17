@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>NEXG Host Intelligence</title>
+
+  <?!= NEXG_include('Theme'); ?>
+
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #0b0b0e; }
+    body { font-family: "Inter", Arial, sans-serif; color: #edf2fb; font-size: 13px; }
+    .nxd { max-width: 1180px; margin: 0 auto; padding: 18px 20px 40px; }
+    .nxd-topbar { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+    .nxd-brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+    .nxd-brand svg { height: 30px; width: auto; }
+    .nxd-brand .sub { font-style: italic; font-size: 12px; color: #D4AF37; }
+    .nxd-live { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: .08em; color: #D4AF37; }
+    .nxd-live .dot { width: 7px; height: 7px; border-radius: 50%; background: #D4AF37; box-shadow: 0 0 8px #D4AF37; }
+    .nxd-clock { font-size: 12px; color: #7e8ca7; font-variant-numeric: tabular-nums; }
+    .nxd-btn { background: rgba(212,175,55,.1); border: 1px solid rgba(212,175,55,.3); color: #D4AF37; border-radius: 10px; padding: 8px 14px; font-weight: 700; font-size: 12px; cursor: pointer; }
+    .nxd-btn:hover { background: rgba(212,175,55,.18); }
+    .nxd-grid { display: grid; gap: 12px; }
+    .nxd-hero { grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr; }
+    .nxd-row5 { grid-template-columns: repeat(5, 1fr); }
+    .nxd-row2 { grid-template-columns: 1fr 1fr; }
+    .nxd-row3 { grid-template-columns: 1fr 1fr 1fr; }
+    @media (max-width: 900px) { .nxd-hero, .nxd-row5, .nxd-row3 { grid-template-columns: 1fr 1fr; } .nxd-row2 { grid-template-columns: 1fr; } }
+    .nxd-card { background: linear-gradient(180deg, #16161c, #101014); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 16px; position: relative; overflow: hidden; }
+    .nxd-eyebrow { font-size: 10px; font-weight: 800; letter-spacing: .14em; color: #D4AF37; text-transform: uppercase; display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+    .nxd-eyebrow::before { content: ""; width: 14px; height: 2px; background: #D4AF37; border-radius: 2px; }
+    .nxd-big { font-size: 34px; font-weight: 800; line-height: 1; }
+    .nxd-sub { font-size: 11px; color: #7e8ca7; margin-top: 6px; letter-spacing: .06em; text-transform: uppercase; font-weight: 700; }
+    .nxd-sub2 { font-size: 11px; color: #7e8ca7; margin-top: 4px; }
+    .nxd-gold { color: #D4AF37; }
+    .nxd-red { color: #ef4444; }
+    .nxd-donut-wrap { display: flex; align-items: center; gap: 16px; }
+    .nxd-donut { transform: rotate(-90deg); }
+    .nxd-flowbar { display: grid; grid-template-columns: 110px 1fr 34px; gap: 8px; align-items: center; padding: 5px 0; cursor: pointer; border-radius: 8px; }
+    .nxd-flowbar:hover { background: rgba(255,255,255,.03); }
+    .nxd-flowbar .lbl { font-size: 11px; color: #b6c2d9; font-weight: 600; }
+    .nxd-track { height: 12px; border-radius: 7px; background: rgba(255,255,255,.07); overflow: hidden; }
+    .nxd-track > div { height: 100%; border-radius: 7px; background: linear-gradient(90deg, #8a6d1c, #D4AF37, #f0d070); }
+    .nxd-count { font-size: 12px; font-weight: 800; text-align: right; }
+    .nxd-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .nxd-table th { text-align: left; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #7e8ca7; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .nxd-table td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,.05); vertical-align: top; }
+    .nxd-table tr:last-child td { border-bottom: none; }
+    .nxd-pill { display: inline-block; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: rgba(62,123,250,.14); color: #7da9ff; }
+    .nxd-pill.live { background: rgba(34,197,94,.14); color: #22c55e; }
+    .nxd-pill.bad { background: rgba(239,68,68,.14); color: #ef4444; }
+    .nxd-pill.warn { background: rgba(245,158,11,.14); color: #f59e0b; }
+    .nxd-mbars { display: flex; align-items: flex-end; gap: 8px; height: 120px; padding-top: 8px; }
+    .nxd-mbar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+    .nxd-mbar > div.bar { width: 100%; border-radius: 5px; background: linear-gradient(180deg, #f0d070, #8a6d1c); min-height: 3px; }
+    .nxd-mbar > span { font-size: 9px; color: #7e8ca7; }
+    .nxd-foot { margin-top: 16px; display: flex; justify-content: space-between; font-size: 11px; color: #7e8ca7; }
+    .nxd-foot .gold { color: #D4AF37; font-style: italic; }
+    .nxd-drill { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
+    .nxd-drill.open { display: flex; }
+    .nxd-drill-box { background: #141419; border: 1px solid rgba(212,175,55,.25); border-radius: 16px; max-width: 560px; width: 100%; max-height: 80vh; overflow: auto; padding: 20px; }
+    .nxd-drill-box h3 { margin: 0 0 4px; font-size: 16px; }
+    .nxd-drill-box .x { float: right; background: none; border: none; color: #7e8ca7; font-size: 18px; cursor: pointer; }
+    .nxd-err { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.35); color: #fca5a5; border-radius: 12px; padding: 16px; }
+  </style>
+</head>
+
+<body>
+  <div class="nxd">
+    <div class="nxd-topbar">
+      <div class="nxd-brand">
+        <svg viewBox="0 185 396 140" role="img" aria-label="NEXG" xmlns="http://www.w3.org/2000/svg" style="height:30px;width:auto"><path fill="#F5F5F7" stroke="#F5F5F7" stroke-width="4.1689" d="M16.7,205.85H29c1.32,0,2.54,0.66,3.19,1.72l34.52,56.49c1.85,3.02,6.85,1.82,6.85-1.65v-53.19c0-1.86,1.64-3.37,3.66-3.37h11.55c2.02,0,3.66,1.51,3.66,3.37v98.75c0,1.86-1.64,3.37-3.66,3.37H76.42c-1.32,0-2.54-0.66-3.19-1.71l-34.47-56.3c-1.85-3.02-6.85-1.81-6.85,1.65v52.99c0,1.86-1.64,3.37-3.66,3.37H16.7c-2.02,0-3.66-1.51-3.66-3.37v-98.75C13.04,207.35,14.68,205.85,16.7,205.85z"/><path fill="#F5F5F7" stroke="#F5F5F7" stroke-width="2" d="M110.74,206.37h54.52c2.74,0,4.96,2.22,4.96,4.96v9.75c0,2.74-2.22,4.96-4.96,4.96h-32.21c-2.74,0-4.96,2.22-4.96,4.96v9.18c0,2.74,2.22,4.96,4.96,4.96h32.21c2.74,0,4.96,2.22,4.96,4.96v9.4c0,2.74-2.22,4.96-4.96,4.96h-32.21c-2.74,0-4.96,2.22-4.96,4.96v17.87c0,2.74,2.22,4.96,4.96,4.96h32.21c2.74,0,4.96,2.22,4.96,4.96v9.83c0,2.74-2.22,4.96-4.96,4.96h-54.52c-2.74,0-4.96-2.22-4.96-4.96v-95.71C105.78,208.59,108,206.37,110.74,206.37z"/><path fill="#F5F5F7" d="M268.53,311.93c1.13-0.31,1.68-1.49,1.14-2.46l-26.25-47.63c-0.42-0.7-1.49-0.74-1.97-0.08l-11.19,15.55c-0.24,0.33-0.26,0.75-0.05,1.1l17.97,30.35c1.18,2,3.45,3.24,5.92,3.24h13.89C268.17,312,268.36,311.98,268.53,311.93L268.53,311.93z"/><path fill="#F5F5F7" d="M244.7,249.93l24.85-34.43c2.98-4.13-0.22-9.66-5.6-9.66h-8.8c-2.25,0-4.34,1.04-5.59,2.76l-20.56,28.41L240,250.09C241.22,251.53,243.61,251.45,244.7,249.93z"/><path fill="#F8A61C" d="M227.57,240.07l-22.84-31.63c-1-1.38-2.67-2.21-4.46-2.21h-12.09c-4.29,0-6.84,4.41-4.46,7.71l29.45,40.78c1.2,1.67,1.2,3.84,0,5.5l-31.89,44.07c-2.38,3.29,0.17,7.71,4.46,7.71h12.23c1.79,0,3.47-0.83,4.46-2.21l25.25-34.98l0.07,0.1l11.18-15.47c1.27-1.76,1.19-4.06-0.19-5.75l-10.99-13.38C227.7,240.23,227.63,240.15,227.57,240.07z"/><path fill="#F8A61E" stroke="#F8A61E" stroke-width="0.8" d="M341.7,198.16L341.7,198.16c-2.73,0.77-5.74,2-5.47,6.05c0,0.01-0.01,0.03-0.01,0.04c-0.33,1.78,0.65,3.53,2.03,3.77c12.34,2.13,21.36,8.92,28.29,18.34c3.43,4.66,0.16,11.26-5.63,11.31l-1.59,0.01c-1.99,0.02-3.87-0.83-5.26-2.26c-12.23-12.63-32.44-14.32-43.66-0.85c-17.31,20.79-7.67,59.27,19.7,56.15c5.51-0.63,15.22-3.17,18.8-6.04c0.5-0.4,0.97-0.8,1.42-1.2c4.88-4.37,1.7-12.46-4.85-12.36l-7.24,0.11c-3.93,0.06-7.15-3.08-7.19-7.01l-0.06-5.75c-0.04-3.92,3.1-7.12,7.02-7.16l29.16-0.28c3.91-0.04,7.07,3.09,7.16,7c0.58,25.32-9.66,53.38-43.32,53.96c-49.8,0.87-64.36-59.89-34.62-89.85c9.11-9.18,19.33-13.39,30.87-14.2c1.64-0.12,2.88-2,2.69-4.13c0-0.03,0-0.05-0.01-0.08c-0.28-2.99-0.85-4.56-5.34-5.55l0,0.05c-1.73-0.69-2.99-2.85-2.99-5.41v-0.01c0-1.65,1.02-2.99,2.29-2.99h17.84c2.38,0,3.85,3.53,2.46,6.07C343.62,196.88,342.83,197.74,341.7,198.16z"/></svg>
+        <span class="sub">host intelligence, live</span>
+      </div>
+      <span class="nxd-live"><span class="dot"></span>LIVE</span>
+      <span class="nxd-clock" id="nxdClock">--:--:--</span>
+      <button class="nxd-btn" id="nxdRefresh" type="button">Refresh</button>
+    </div>
+
+    <div id="nxdBody"><div class="nxd-card">Loading NEXG Intelligence…</div></div>
+
+    <div class="nxd-foot"><span>NEXG Host Intelligence · auto-refreshes on open</span><span class="gold" id="nxdUpdated">—</span></div>
+  </div>
+
+  <div class="nxd-drill" id="nxdDrill">
+    <div class="nxd-drill-box">
+      <button class="x" id="nxdDrillClose" type="button">✕</button>
+      <h3 id="nxdDrillTitle">Stage</h3>
+      <div class="nxd-sub" id="nxdDrillSub"></div>
+      <div id="nxdDrillList" style="margin-top:12px;display:grid;gap:8px;"></div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  var D = null;
+
+  function esc(v) {
+    return String(v === null || v === undefined ? '' : v)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function tick() {
+    var el = document.getElementById('nxdClock');
+    if (el) el.textContent = new Date().toLocaleTimeString();
+  }
+  setInterval(tick, 1000);
+  tick();
+
+  function load() {
+    google.script.run
+      .withSuccessHandler(function (res) {
+        if (res && res.success) { D = res.data; render(); }
+        else fail(res && res.error ? res.error.message : 'Unknown error.');
+      })
+      .withFailureHandler(function (err) { fail(err && err.message ? err.message : 'Server error.'); })
+      .NEXG_api({ route: 'panel.dashboard', payload: {} });
+  }
+
+  function fail(m) {
+    document.getElementById('nxdBody').innerHTML = '<div class="nxd-err">' + esc(m) + '</div>';
+  }
+
+  function kpi(icon, value, label, sub, tone) {
+    return '<div class="nxd-card"><div class="nxd-eyebrow">' + label + '</div>' +
+      '<div class="nxd-big' + (tone ? ' nxd-' + tone : '') + '">' + value + '</div>' +
+      (sub ? '<div class="nxd-sub2">' + sub + '</div>' : '') + '</div>';
+  }
+
+  function donut(pct, big, label, sub) {
+    var r = 54, c = 2 * Math.PI * r, off = c * (1 - Math.min(Math.max(pct, 0), 1));
+    return '<div class="nxd-card"><div class="nxd-eyebrow">Conversion</div>' +
+      '<div class="nxd-donut-wrap"><svg class="nxd-donut" width="120" height="120" viewBox="0 0 120 120">' +
+      '<circle cx="60" cy="60" r="' + r + '" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="11"/>' +
+      '<circle cx="60" cy="60" r="' + r + '" fill="none" stroke="#D4AF37" stroke-width="11" stroke-linecap="round" stroke-dasharray="' + (c * Math.min(Math.max(pct, 0), 1)).toFixed(1) + ' ' + c.toFixed(1) + '"/>' +
+      '<text x="60" y="58" text-anchor="middle" fill="#fff" font-size="22" font-weight="800">' + big + '</text>' +
+      '<text x="60" y="76" text-anchor="middle" fill="#D4AF37" font-size="10" font-weight="700">' + esc(label) + '</text>' +
+      '</svg><div><div style="font-size:15px;font-weight:800;">' + esc(sub) + '</div></div></div></div>';
+  }
+
+  function render() {
+    var t = D.totals, inPipe = t.total - t.live - t.archived;
+    var conv = t.total ? Math.round((t.live / t.total) * 100) : 0;
+    var html = '';
+
+    html += '<div class="nxd-grid nxd-hero">' +
+      donut(t.total ? t.live / t.total : 0, conv + '%', 'converted', 'Pipeline → Live') +
+      kpi(0, t.total, 'Hosts', 'all time') +
+      kpi(0, t.live, 'Live', 'bookable now', 'gold') +
+      kpi(0, inPipe, 'In Pipeline', 'active deals') +
+      kpi(0, t.archived, 'Archived', 'out of funnel') +
+      '</div>';
+
+    html += '<div class="nxd-grid nxd-row5" style="margin-top:12px;">' +
+      kpi(0, D.followUpsDueCount, 'Overdue + Due', D.overdueCount + ' overdue', D.overdueCount ? 'red' : '') +
+      kpi(0, D.meetingsNext.length, 'Meetings', 'upcoming') +
+      kpi(0, D.callsWeek, 'Calls', 'last 7 days') +
+      kpi(0, D.emailStats.sent, 'Emails Sent', D.emailStats.failed + ' failed') +
+      kpi(0, (D.emailStats.opened || 0), 'Opened', D.emailStats.replied + ' replied') +
+      '</div>';
+
+    html += '<div class="nxd-card" style="margin-top:12px;"><div class="nxd-eyebrow">Pipeline · click a stage to drill in</div><div id="nxdFlow">' +
+      D.stageFunnel.map(function (s, i) {
+        return '<div class="nxd-flowbar" data-stage="' + esc(s.key) + '" data-i="' + i + '">' +
+          '<span class="lbl">' + esc(s.label) + '</span><div class="nxd-track"><div style="width:' + flowW(s) + '%"></div></div>' +
+          '<span class="nxd-count">' + s.count + '</span></div>';
+      }).join('') + '</div></div>';
+
+    html += '<div class="nxd-grid nxd-row3" style="margin-top:12px;">' +
+      '<div class="nxd-card"><div class="nxd-eyebrow">Owner Leaderboard</div>' + board() + '</div>' +
+      '<div class="nxd-card"><div class="nxd-eyebrow">Momentum · 8 weeks</div>' + momentum() + '</div>' +
+      '<div class="nxd-card"><div class="nxd-eyebrow">Overdue Follow-ups</div>' + overdue() + '</div>' +
+      '</div>';
+
+    html += '<div class="nxd-card" style="margin-top:12px;"><div class="nxd-eyebrow">Recent Activity</div>' + activity() + '</div>';
+
+    document.getElementById('nxdBody').innerHTML = html;
+
+    var bars = document.querySelectorAll('#nxdFlow .nxd-flowbar');
+    for (var i = 0; i < bars.length; i++) {
+      bars[i].addEventListener('click', function () { drill(this.getAttribute('data-stage')); });
+    }
+    document.getElementById('nxdUpdated').textContent = 'updated ' + new Date().toLocaleString();
+  }
+
+  function flowW(s) {
+    var max = 1;
+    D.stageFunnel.forEach(function (x) { max = Math.max(max, x.count || 0); });
+    return Math.round(((s.count || 0) / max) * 100);
+  }
+
+  function board() {
+    if (!D.leaderboard.length) return '<div class="nxd-sub">No owners yet.</div>';
+    return '<table class="nxd-table">' + D.leaderboard.map(function (r) {
+      return '<tr><td><strong>' + esc(r.owner) + '</strong></td><td>' + r.hosts + ' hosts</td>' +
+        '<td><span class="nxd-pill live">' + r.live + ' live</span></td></tr>';
+    }).join('') + '</table>';
+  }
+
+  function momentum() {
+    var max = 1;
+    D.trend.forEach(function (w) { max = Math.max(max, w.activities || 0); });
+    return '<div class="nxd-mbars">' + D.trend.map(function (w) {
+      var h = Math.max(3, Math.round(((w.activities || 0) / max) * 100));
+      return '<div class="nxd-mbar"><div class="bar" style="height:' + h + '%" title="' + w.activities + ' activities"></div><span>' + esc(w.week) + '</span></div>';
+    }).join('') + '</div>';
+  }
+
+  function overdue() {
+    var items = (D.followUpsDue || []).filter(function (f) { return f.overdue; }).slice(0, 5);
+    if (!items.length) return '<div class="nxd-sub">Nothing overdue. Enjoy the quiet.</div>';
+    return items.map(function (f) {
+      return '<div style="display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06);">' +
+        '<span><strong>' + esc(f.hostName) + '</strong><br><span class="nxd-sub">' + esc(f.subject) + '</span></span>' +
+        '<span class="nxd-pill bad">late</span></div>';
+    }).join('');
+  }
+
+  function activity() {
+    if (!D.recentActivity.length) return '<div class="nxd-sub">No activity yet.</div>';
+    return '<table class="nxd-table">' + D.recentActivity.map(function (a) {
+      return '<tr><td style="white-space:nowrap;">' + esc(a.createdAt ? String(a.createdAt).slice(0, 16).replace('T', ' ') : '-') + '</td>' +
+        '<td><strong>' + esc(a.hostName) + '</strong></td><td>' + esc(a.subject || a.type) + '</td></tr>';
+    }).join('') + '</table>';
+  }
+
+  function drill(stageKey) {
+    var label = stageKey, list = [];
+    D.stageFunnel.forEach(function (s) { if (s.key === stageKey) label = s.label; });
+    (D.hostsBasic || []).forEach(function (h) {
+      if (h.stage === stageKey) list.push(h);
+    });
+    document.getElementById('nxdDrillTitle').textContent = label + ' (' + list.length + ')';
+    document.getElementById('nxdDrillSub').textContent = 'Click a host, then open it in the Smart Panel.';
+    document.getElementById('nxdDrillList').innerHTML = list.length ? list.map(function (h) {
+      return '<div style="display:flex;justify-content:space-between;gap:8px;padding:9px 10px;border:1px solid rgba(255,255,255,.08);border-radius:10px;">' +
+        '<span><strong>' + esc(h.hostName) + '</strong><br><span class="nxd-sub">' + esc(h.owner) + ' · ' + esc(h.phone || h.email || 'no contact') + '</span></span>' +
+        '<span class="nxd-pill">' + esc(h.lifecycleStatus) + '</span></div>';
+    }).join('') : '<div class="nxd-sub">No hosts in this stage.</div>';
+    document.getElementById('nxdDrill').classList.add('open');
+  }
+
+  document.getElementById('nxdDrillClose').addEventListener('click', function () {
+    document.getElementById('nxdDrill').classList.remove('open');
+  });
+  document.getElementById('nxdDrill').addEventListener('click', function (e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+  document.getElementById('nxdRefresh').addEventListener('click', function () {
+    document.getElementById('nxdBody').innerHTML = '<div class="nxd-card">Loading NEXG Intelligence…</div>';
+    if (window.google && google.script && google.script.run) load();
+    else document.getElementById('nxdBody').innerHTML = '<div class="nxd-err">Google Apps Script bridge not detected.</div>';
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>

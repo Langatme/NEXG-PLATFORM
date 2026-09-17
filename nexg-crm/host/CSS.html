@@ -1,0 +1,240 @@
+<style>
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background: var(--nx-color-bg);
+    color: var(--nx-color-text);
+    font-family: var(--nx-font-family);
+    font-size: var(--nx-font-size-body);
+    line-height: var(--nx-line-height-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: var(--nx-color-primary);
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--nx-shadow-focus);
+    border-radius: var(--nx-radius-sm);
+  }
+
+  /* App shell */
+  .nx-app {
+    display: flex;
+    min-height: 100vh;
+    background: var(--nx-color-bg);
+  }
+
+  .nx-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .nx-content {
+    width: 100%;
+    max-width: var(--nx-content-max-width);
+    margin: 0 auto;
+    padding: var(--nx-space-6);
+    display: grid;
+    gap: var(--nx-space-6);
+  }
+
+  /* Grid */
+  .nx-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--nx-grid-columns), minmax(0, 1fr));
+    gap: var(--nx-grid-gap);
+  }
+
+  .nx-col-3,
+  .nx-col-4,
+  .nx-col-6,
+  .nx-col-8,
+  .nx-col-12 {
+    grid-column: span 12;
+  }
+
+  @media (min-width: 900px) {
+    .nx-col-3 {
+      grid-column: span 3;
+    }
+
+    .nx-col-4 {
+      grid-column: span 4;
+    }
+
+    .nx-col-6 {
+      grid-column: span 6;
+    }
+
+    .nx-col-8 {
+      grid-column: span 8;
+    }
+
+    .nx-col-12 {
+      grid-column: span 12;
+    }
+  }
+
+  /* Page structure */
+  .nx-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--nx-space-4);
+    flex-wrap: wrap;
+  }
+
+  .nx-page-header__title {
+    margin: 0;
+    font-size: var(--nx-font-size-h1);
+    font-weight: var(--nx-font-weight-bold);
+    line-height: var(--nx-line-height-tight);
+  }
+
+  .nx-page-header__subtitle {
+    margin: var(--nx-space-1) 0 0;
+    color: var(--nx-color-text-secondary);
+  }
+
+  .nx-section {
+    display: grid;
+    gap: var(--nx-space-4);
+  }
+
+  .nx-section__title {
+    margin: 0;
+    font-size: var(--nx-font-size-h2);
+    font-weight: var(--nx-font-weight-bold);
+    line-height: var(--nx-line-height-tight);
+  }
+
+  .nx-section__subtitle {
+    margin: var(--nx-space-1) 0 0;
+    color: var(--nx-color-text-secondary);
+  }
+
+  .nx-panel {
+    background: var(--nx-color-surface);
+    border: 1px solid var(--nx-color-border);
+    border-radius: var(--nx-radius-lg);
+    padding: var(--nx-space-4);
+    box-shadow: var(--nx-shadow-1);
+  }
+
+  /* Utility classes */
+  .nx-flex {
+    display: flex;
+    align-items: center;
+  }
+
+  .nx-flex--between {
+    justify-content: space-between;
+  }
+
+  .nx-flex--wrap {
+    flex-wrap: wrap;
+  }
+
+  .nx-gap-1 {
+    gap: var(--nx-space-1);
+  }
+
+  .nx-gap-2 {
+    gap: var(--nx-space-2);
+  }
+
+  .nx-gap-3 {
+    gap: var(--nx-space-3);
+  }
+
+  .nx-gap-4 {
+    gap: var(--nx-space-4);
+  }
+
+  .nx-mt-2 {
+    margin-top: var(--nx-space-2);
+  }
+
+  .nx-mt-4 {
+    margin-top: var(--nx-space-4);
+  }
+
+  .nx-text-muted {
+    color: var(--nx-color-text-muted);
+  }
+
+  .nx-text-secondary {
+    color: var(--nx-color-text-secondary);
+  }
+
+  .nx-text-small {
+    font-size: var(--nx-font-size-small);
+  }
+
+  .nx-divider {
+    height: 1px;
+    border: none;
+    background: var(--nx-color-border-subtle);
+    margin: var(--nx-space-4) 0;
+  }
+
+  .nx-visually-hidden {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .nx-list {
+    display: grid;
+    gap: var(--nx-space-2);
+  }
+
+  .nx-list__row {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--nx-space-4);
+  }
+
+  .nx-list__label {
+    color: var(--nx-color-text-muted);
+    font-size: var(--nx-font-size-small);
+  }
+
+  .nx-list__value {
+    text-align: right;
+  }
+</style>
