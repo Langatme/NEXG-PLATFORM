@@ -1,0 +1,98 @@
+export const hooksRegistry = {
+  useBottomTabOverflow: {
+    name: 'useBottomTabOverflow',
+    description: 'useBottomTabOverflow',
+    type: 'registry:hook',
+    dependencies: ['expo-router'],
+    files: [
+      {
+        type: 'registry:hook',
+        path: 'src/hooks/useBottomTabOverflow.ts',
+        target: 'hooks/useBottomTabOverflow.ts',
+      },
+    ],
+  },
+
+  useColorScheme: {
+    name: 'useColorScheme',
+    description: 'useColorScheme',
+    type: 'registry:hook',
+    dependencies: [],
+    providers: ['mode-provider'],
+    files: [
+      {
+        type: 'registry:hook',
+        path: 'src/hooks/useColorScheme.ts',
+        target: 'hooks/useColorScheme.ts',
+      },
+      {
+        type: 'registry:hook',
+        path: 'src/hooks/useColorScheme.web.ts',
+        target: 'hooks/useColorScheme.web.ts',
+      },
+    ],
+  },
+
+  useKeyboardHeight: {
+    name: 'useKeyboardHeight',
+    description:
+      'A React Native hook that tracks keyboard visibility, height, and animation duration with cross-platform support and screen rotation handling',
+    type: 'registry:hook',
+    dependencies: [],
+    files: [
+      {
+        type: 'registry:hook',
+        path: 'src/hooks/useKeyboardHeight.ts',
+        target: 'hooks/useKeyboardHeight.ts',
+      },
+    ],
+  },
+
+  useModeToggle: {
+    name: 'useModeToggle',
+    description: 'useModeToggle',
+    type: 'registry:hook',
+    dependencies: [],
+    // The scheme now reaches this hook through the mode context rather than
+    // `useColorScheme`, which it no longer imports.
+    providers: ['mode-provider'],
+    files: [
+      {
+        type: 'registry:hook',
+        path: 'src/hooks/useModeToggle.tsx',
+        target: 'hooks/useModeToggle.tsx',
+      },
+    ],
+  },
+
+  useHaptics: {
+    name: 'useHaptics',
+    description:
+      'Semantic haptic feedback that routes each intent to the right native API per platform — performAndroidHapticsAsync on Android rather than the Vibrator-simulated impact APIs Expo discourages.',
+    type: 'registry:hook',
+    dependencies: ['expo-haptics'],
+    files: [
+      {
+        type: 'registry:hook',
+        path: 'src/hooks/useHaptics.ts',
+        target: 'hooks/useHaptics.ts',
+      },
+    ],
+  },
+
+  useColor: {
+    name: 'useColor',
+    description: 'useColor',
+    type: 'registry:hook',
+    dependencies: [],
+    hooks: ['useColorScheme'],
+    theme: ['colors'],
+    files: [
+      {
+        type: 'registry:hook',
+        path: 'src/hooks/useColor.ts',
+        target: 'hooks/useColor.ts',
+      },
+    ],
+  },
+};

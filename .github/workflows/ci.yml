@@ -1,0 +1,51 @@
+name: nexg-ci
+on: [push, pull_request]
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - run: docker compose up -d
+      - run: npm ci
+        working-directory: nexg-backend
+      - run: npx tsc --noEmit
+        working-directory: nexg-backend
+      - run: node --import tsx scripts/seed-consumer-catalog.ts
+        working-directory: nexg-backend
+      - run: node scripts/seed-index.js
+        working-directory: nexg-backend
+      - name: boot + verify (single-call pattern)
+        working-directory: nexg-backend
+        run: |
+          node --import tsx src/index.ts &
+          API_PID=$!
+          for i in $(seq 1 30); do curl -sf http://localhost:3000/health && break; sleep 1; done
+          node scripts/m0-verify.js
+          node scripts/m1-verify.js
+          node scripts/m2-verify.js
+          node scripts/m3-verify.js
+          node scripts/m4-verify.js
+          node scripts/events-verify.js
+          node scripts/cb-verify.js
+          node scripts/consumer-qa.js
+          kill $API_PID
+  apps-tsc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - run: npm ci
+        working-directory: nexg-merchant-app
+      - run: npx tsc --noEmit
+        working-directory: nexg-merchant-app
+      - run: npm ci
+        working-directory: nexg-rider-app
+      - run: npx tsc --noEmit
+        working-directory: nexg-rider-app
+      - run: npm ci
+        working-directory: nexg-host-app
+      - run: npx tsc --noEmit
+        working-directory: nexg-host-app

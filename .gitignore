@@ -1,0 +1,35 @@
+# Dependencies — excluded from search (Glob/grep) and version control
+node_modules/
+
+# Env secrets — keep .env.example, ignore real .env files
+.env
+.env.local
+.env.*.local
+!.env.example
+!**/.env.example
+
+# Expo / React Native build output
+.expo/
+dist/
+web-build/
+build/
+
+# Logs / OS
+*.log
+.DS_Store
+Thumbs.db
+
+# Vendor reference repos (nested git repos — excluded to avoid submodules)
+vendor/BookIt/
+vendor/OpenSalon/
+vendor/ahmedbna-ui/
+vendor/appllama-skills/
+vendor/blooso/
+vendor/boneyard/
+vendor/expo-skills/
+vendor/kibo/
+vendor/kinetics/
+vendor/legend-list/
+vendor/panelui/
+vendor/top-welcome-screens/
+vendor/zomato-district-clone/

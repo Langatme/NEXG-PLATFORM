@@ -1,0 +1,112 @@
+// definitions/charts/radar-chart.ts
+// Registry configuration for radar-chart component and demos
+
+export const radarChartRegistry = {
+  // Main radar-chart component
+  'radar-chart': {
+    name: 'radar-chart',
+    description:
+      'A customizable radar chart component with smooth animations and flexible styling for displaying multi-dimensional data.',
+    type: 'registry:ui',
+    dependencies: [
+      'react-native-svg',
+      'react-native-reanimated',
+      'react-native-worklets',
+    ],
+    registryDependencies: [],
+    hooks: ['useColor'],
+    theme: ['globals'],
+    files: [
+      {
+        type: 'registry:ui',
+        path: 'src/components/charts/radar-chart.tsx',
+        target: 'components/charts/radar-chart.tsx',
+      },
+    ],
+    preview: {
+      light: 'https://demo.ahmedbna.com/0375-radar-chart-demo.MOV',
+      dark: 'https://demo.ahmedbna.com/0375-radar-chart-demo.MOV',
+    },
+  },
+
+  // Basic radar chart demo
+  'radar-chart-demo': {
+    name: 'radar-chart-demo',
+    description: 'A radar chart with smooth animations',
+    type: 'registry:example',
+    registryDependencies: ['radar-chart', 'chart-container'],
+    hooks: [],
+    theme: [],
+    files: [
+      {
+        type: 'registry:example',
+        path: 'src/demo/charts/radar-chart/radar-chart-demo.tsx',
+        target: 'components/demo/charts/radar-chart/radar-chart-demo.tsx',
+      },
+    ],
+    preview: {
+      light: 'https://demo.ahmedbna.com/0375-radar-chart-demo.MOV',
+      dark: 'https://demo.ahmedbna.com/0375-radar-chart-demo.MOV',
+    },
+  },
+
+  'radar-chart-sample': {
+    name: 'radar-chart-sample',
+    description: 'A sample radar chart',
+    type: 'registry:example',
+    registryDependencies: ['radar-chart', 'chart-container'],
+    hooks: [],
+    theme: [],
+    files: [
+      {
+        type: 'registry:example',
+        path: 'src/demo/charts/radar-chart/radar-chart-sample.tsx',
+        target: 'components/demo/charts/radar-chart/radar-chart-sample.tsx',
+      },
+    ],
+    preview: {
+      light: 'https://demo.ahmedbna.com/0376-radar-chart-sample.MOV',
+      dark: 'https://demo.ahmedbna.com/0376-radar-chart-sample.MOV',
+    },
+  },
+
+  'radar-chart-styled': {
+    name: 'radar-chart-styled',
+    description: 'A customized radar chart with custom colors and styling',
+    type: 'registry:example',
+    registryDependencies: ['radar-chart', 'chart-container'],
+    hooks: ['useColor'],
+    theme: [],
+    files: [
+      {
+        type: 'registry:example',
+        path: 'src/demo/charts/radar-chart/radar-chart-styled.tsx',
+        target: 'components/demo/charts/radar-chart/radar-chart-styled.tsx',
+      },
+    ],
+    preview: {
+      light: 'https://demo.ahmedbna.com/0377-radar-chart-styled.MOV',
+      dark: 'https://demo.ahmedbna.com/0377-radar-chart-styled.MOV',
+    },
+  },
+
+  'radar-chart-large': {
+    name: 'radar-chart-large',
+    description: 'A radar chart with large dataset',
+    type: 'registry:example',
+    registryDependencies: ['radar-chart', 'chart-container'],
+    hooks: [],
+    theme: [],
+    files: [
+      {
+        type: 'registry:example',
+        path: 'src/demo/charts/radar-chart/radar-chart-large.tsx',
+        target: 'components/demo/charts/radar-chart/radar-chart-large.tsx',
+      },
+    ],
+    preview: {
+      light: 'https://demo.ahmedbna.com/0378-radar-chart-large.MOV',
+      dark: 'https://demo.ahmedbna.com/0378-radar-chart-large.MOV',
+    },
+  },
+};

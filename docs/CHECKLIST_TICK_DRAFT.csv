@@ -1,0 +1,648 @@
+feature_id,module,section,feature_name,reg_match,reg_name,confidence,status
+ADM-DASH-001,Admin,DASH,Platform KPIs,ADM-001,Admin Workspace,review
+ADM-DASH-002,Admin,DASH,Live Order Feed,ADM-002,Global Search,review
+ADM-DASH-003,Admin,DASH,Vendor Activity Status,ADM-003,Users,review
+ADM-DASH-004,Admin,DASH,Rider Activity Status,ADM-004,User Detail,review
+ADM-DASH-005,Admin,DASH,System Alerts,ADM-005,Organizations,review
+ADM-DASH-006,Admin,DASH,Pending Approvals,ADM-006,Organization Detail,review
+ADM-DASH-007,Admin,DASH,Revenue Summary,ADM-007,Merchants,review
+ADM-DASH-008,Admin,DASH,Recent Activity,ADM-008,Merchant Detail,review
+ADM-DASH-009,Admin,DASH,Quick Actions,ADM-009,Riders,review
+ADM-ORD-001,Admin,ORD,View Orders,ADM-001,Admin Workspace,match
+ADM-ORD-002,Admin,ORD,Search Orders,ADM-002,Global Search,match
+ADM-ORD-003,Admin,ORD,Filter Orders,ADM-003,Users,review
+ADM-ORD-004,Admin,ORD,Order Details,ADM-004,User Detail,review
+ADM-ORD-005,Admin,ORD,Order Timeline,ADM-005,Organizations,review
+ADM-ORD-006,Admin,ORD,Refund Approval,ADM-006,Organization Detail,review
+ADM-ORD-007,Admin,ORD,Order Escalation,ADM-007,Merchants,review
+ADM-ORD-008,Admin,ORD,Order Cancellation,ADM-008,Merchant Detail,review
+ADM-ORD-009,Admin,ORD,Order Audit History,ADM-009,Riders,review
+ADM-ORD-010,Admin,ORD,Order Reporting,ADM-010,Rider Detail,review
+ADM-VEN-001,Admin,VEN,Vendor Directory,ADM-001,Admin Workspace,review
+ADM-VEN-002,Admin,VEN,Vendor Approval,ADM-002,Global Search,review
+ADM-VEN-003,Admin,VEN,Vendor Suspension,ADM-003,Users,review
+ADM-VEN-004,Admin,VEN,Vendor Reactivation,ADM-004,User Detail,review
+ADM-VEN-005,Admin,VEN,Vendor Performance,ADM-005,Organizations,review
+ADM-VEN-006,Admin,VEN,Vendor Compliance Status,ADM-006,Organization Detail,review
+ADM-VEN-007,Admin,VEN,Vendor Documents,ADM-007,Merchants,review
+ADM-VEN-008,Admin,VEN,Vendor Analytics,ADM-008,Merchant Detail,review
+ADM-RID-001,Admin,RID,Rider Directory,ADM-001,Admin Workspace,review
+ADM-RID-002,Admin,RID,Rider Verification,ADM-002,Global Search,review
+ADM-RID-003,Admin,RID,Rider Tracking,ADM-003,Users,review
+ADM-RID-004,Admin,RID,Rider Performance,ADM-004,User Detail,review
+ADM-RID-005,Admin,RID,Rider Suspension,ADM-005,Organizations,review
+ADM-RID-006,Admin,RID,Incident Monitoring,ADM-006,Organization Detail,review
+ADM-RID-007,Admin,RID,Rider Documents,ADM-007,Merchants,review
+ADM-HST-001,Admin,HST,Host Directory,ADM-001,Admin Workspace,review
+ADM-HST-002,Admin,HST,Host Verification,ADM-002,Global Search,review
+ADM-HST-003,Admin,HST,Property Summary,ADM-003,Users,review
+ADM-HST-004,Admin,HST,Commission Monitoring,ADM-004,User Detail,review
+ADM-HST-005,Admin,HST,Host Compliance,ADM-005,Organizations,review
+ADM-GST-001,Admin,GST,Guest Directory,ADM-001,Admin Workspace,review
+ADM-GST-002,Admin,GST,Guest Activity,ADM-002,Global Search,review
+ADM-GST-003,Admin,GST,Guest Account Management,ADM-003,Users,review
+ADM-GST-004,Admin,GST,Guest Analytics,ADM-004,User Detail,review
+ADM-CMP-001,Admin,CMP,Campaign Directory,ADM-001,Admin Workspace,review
+ADM-CMP-002,Admin,CMP,Campaign Creation,ADM-002,Global Search,review
+ADM-CMP-003,Admin,CMP,Campaign Scheduling,ADM-003,Users,review
+ADM-CMP-004,Admin,CMP,Campaign Approval,ADM-004,User Detail,review
+ADM-CMP-005,Admin,CMP,Campaign Analytics,ADM-005,Organizations,review
+ADM-STF-001,Admin,STF,Employee Directory,ADM-001,Admin Workspace,review
+ADM-STF-002,Admin,STF,Employee Creation,ADM-002,Global Search,review
+ADM-STF-003,Admin,STF,Role Management,ADM-003,Users,review
+ADM-STF-004,Admin,STF,Permission Management,ADM-004,User Detail,review
+ADM-STF-005,Admin,STF,Access Reviews,ADM-005,Organizations,review
+ADM-STF-006,Admin,STF,Employee Activity,ADM-006,Organization Detail,review
+ADM-FIN-001,Admin,FIN,Revenue Dashboard,ADM-001,Admin Workspace,review
+ADM-FIN-002,Admin,FIN,Commission Monitoring,ADM-002,Global Search,review
+ADM-FIN-003,Admin,FIN,Settlement Monitoring,ADM-003,Users,review
+ADM-FIN-004,Admin,FIN,Refund Monitoring,ADM-004,User Detail,review
+ADM-FIN-005,Admin,FIN,Financial Reports,ADM-005,Organizations,review
+ADM-FIN-006,Admin,FIN,Financial Audit,ADM-006,Organization Detail,review
+ADM-INV-001,Admin,INV,Invoice Directory,ADM-001,Admin Workspace,review
+ADM-INV-002,Admin,INV,Invoice Generation,ADM-002,Global Search,review
+ADM-INV-003,Admin,INV,Invoice Export,ADM-003,Users,review
+ADM-CAT-001,Admin,CAT,Category Management,ADM-001,Admin Workspace,review
+ADM-CAT-002,Admin,CAT,Category Visibility,ADM-002,Global Search,review
+ADM-CAT-003,Admin,CAT,Category Relationships,ADM-003,Users,review
+ADM-CPL-001,Admin,CPL,Merchant Compliance,ADM-001,Admin Workspace,review
+ADM-CPL-002,Admin,CPL,Host Compliance,ADM-002,Global Search,review
+ADM-CPL-003,Admin,CPL,Rider Compliance,ADM-003,Users,review
+ADM-CPL-004,Admin,CPL,Document Verification,ADM-004,User Detail,review
+ADM-CPL-005,Admin,CPL,Compliance Alerts,ADM-005,Organizations,review
+ADM-CPL-006,Admin,CPL,Audit Reports,ADM-006,Organization Detail,review
+ADM-PAY-001,Admin,PAY,Payroll Processing,ADM-001,Admin Workspace,review
+ADM-PAY-002,Admin,PAY,Payment Status,ADM-002,Global Search,review
+ADM-PAY-003,Admin,PAY,Salary Records,ADM-003,Users,review
+ADM-PAY-004,Admin,PAY,Payroll Reports,ADM-004,User Detail,review
+ADM-TAX-001,Admin,TAX,Tax Configuration,ADM-028,Tax Configuration,match
+ADM-TAX-002,Admin,TAX,VAT Configuration,ADM-028,Tax Configuration,review
+ADM-TAX-003,Admin,TAX,Tax Reports,ADM-003,Users,match
+ADM-TAX-004,Admin,TAX,KRA PIN Validation,ADM-004,User Detail,review
+ADM-TAX-005,Admin,TAX,Settlement Tax Records,ADM-005,Organizations,review
+ADM-RPT-001,Admin,RPT,Operational Reports,ADM-001,Admin Workspace,review
+ADM-RPT-002,Admin,RPT,Financial Reports,ADM-002,Global Search,review
+ADM-RPT-003,Admin,RPT,Merchant Reports,ADM-003,Users,review
+ADM-RPT-004,Admin,RPT,Property Reports,ADM-004,User Detail,review
+ADM-RPT-005,Admin,RPT,Rider Reports,ADM-005,Organizations,review
+ADM-RPT-006,Admin,RPT,Export Management,ADM-006,Organization Detail,review
+ADM-ANA-001,Admin,ANA,Revenue Analytics,ADM-001,Admin Workspace,review
+ADM-ANA-002,Admin,ANA,Order Analytics,ADM-002,Global Search,review
+ADM-ANA-003,Admin,ANA,Merchant Analytics,ADM-003,Users,review
+ADM-ANA-004,Admin,ANA,Delivery Analytics,ADM-004,User Detail,review
+ADM-ANA-005,Admin,ANA,Customer Analytics,ADM-005,Organizations,review
+ADM-ANA-006,Admin,ANA,Platform Growth,ADM-006,Organization Detail,review
+ADM-NOT-001,Admin,NOT,Announcement Management,ADM-001,Admin Workspace,review
+ADM-NOT-002,Admin,NOT,Notification Templates,ADM-002,Global Search,review
+ADM-NOT-003,Admin,NOT,Notification History,ADM-003,Users,review
+ADM-NOT-004,Admin,NOT,Delivery Monitoring,ADM-004,User Detail,review
+ADM-SUP-001,Admin,SUP,Support Tickets,ADM-001,Admin Workspace,review
+ADM-SUP-002,Admin,SUP,Ticket Assignment,ADM-002,Global Search,review
+ADM-SUP-003,Admin,SUP,Escalation Management,ADM-003,Users,review
+ADM-SUP-004,Admin,SUP,Vendor Disputes,ADM-004,User Detail,review
+ADM-SUP-005,Admin,SUP,Rider Disputes,ADM-005,Organizations,review
+ADM-SUP-006,Admin,SUP,Support Analytics,ADM-006,Organization Detail,review
+ADM-SET-001,Admin,SET,General Settings,ADM-001,Admin Workspace,review
+ADM-SET-002,Admin,SET,Commission Rules,ADM-002,Global Search,review
+ADM-SET-003,Admin,SET,Platform Fees,ADM-003,Users,review
+ADM-SET-004,Admin,SET,Security Settings,ADM-004,User Detail,review
+ADM-SET-005,Admin,SET,Notification Settings,ADM-005,Organizations,review
+ADM-SET-006,Admin,SET,Integration Settings,ADM-006,Organization Detail,review
+ADM-SET-007,Admin,SET,System Settings,ADM-007,Merchants,review
+VEN-DASH-001,Vendor,DASH,Business KPIs,MRC-001,Merchant Sign In,unmapped
+VEN-DASH-002,Vendor,DASH,Live Orders Feed,MRC-002,Sign Up,unmapped
+VEN-DASH-003,Vendor,DASH,Inventory Alerts,MRC-003,Business Information,unmapped
+VEN-DASH-004,Vendor,DASH,Promotion Performance,MRC-004,Business Verification,unmapped
+VEN-DASH-005,Vendor,DASH,Customer Activity,MRC-005,Document Submission,unmapped
+VEN-DASH-006,Vendor,DASH,Revenue Summary,MRC-006,Location Setup,unmapped
+VEN-DASH-007,Vendor,DASH,Quick Actions,MRC-007,Payment Setup,unmapped
+VEN-DASH-008,Vendor,DASH,Recent Notifications,MRC-008,Catalog Setup,unmapped
+VEN-ORD-001,Vendor,ORD,New Orders Queue,MRC-001,Merchant Sign In,unmapped
+VEN-ORD-002,Vendor,ORD,Accept Order,MRC-002,Sign Up,unmapped
+VEN-ORD-003,Vendor,ORD,Reject Order,MRC-003,Business Information,unmapped
+VEN-ORD-004,Vendor,ORD,Active Orders Pipeline,MRC-004,Business Verification,unmapped
+VEN-ORD-005,Vendor,ORD,Order Preparation,MRC-005,Document Submission,unmapped
+VEN-ORD-006,Vendor,ORD,Ready for Pickup,MRC-006,Location Setup,unmapped
+VEN-ORD-007,Vendor,ORD,Order Details,MRC-007,Payment Setup,unmapped
+VEN-ORD-008,Vendor,ORD,Order Timeline,MRC-008,Catalog Setup,unmapped
+VEN-ORD-009,Vendor,ORD,Order Search,MRC-009,Onboarding Review,unmapped
+VEN-ORD-010,Vendor,ORD,Order Filters,MRC-010,Onboarding Complete,unmapped
+VEN-ORD-011,Vendor,ORD,Order Notes,MRC-011,Merchant Workspace,unmapped
+VEN-ORD-012,Vendor,ORD,Issue Reporting,MRC-012,Workspace Search,unmapped
+VEN-PROD-001,Vendor,PROD,Create Product,MRC-001,Merchant Sign In,unmapped
+VEN-PROD-002,Vendor,PROD,Edit Product,MRC-002,Sign Up,unmapped
+VEN-PROD-003,Vendor,PROD,Delete Product,MRC-003,Business Information,unmapped
+VEN-PROD-004,Vendor,PROD,Duplicate Product,MRC-004,Business Verification,unmapped
+VEN-PROD-005,Vendor,PROD,Product Images,MRC-005,Document Submission,unmapped
+VEN-PROD-006,Vendor,PROD,Product Variants,MRC-006,Location Setup,unmapped
+VEN-PROD-007,Vendor,PROD,Product Modifiers,MRC-007,Payment Setup,unmapped
+VEN-PROD-008,Vendor,PROD,Product Availability,MRC-008,Catalog Setup,unmapped
+VEN-PROD-009,Vendor,PROD,Product Pricing,MRC-009,Onboarding Review,unmapped
+VEN-PROD-010,Vendor,PROD,Product Listing,MRC-010,Onboarding Complete,unmapped
+VEN-PROD-011,Vendor,PROD,Featured Products,MRC-011,Merchant Workspace,unmapped
+VEN-PROD-012,Vendor,PROD,Product Scheduling,MRC-012,Workspace Search,unmapped
+VEN-INV-001,Vendor,INV,Stock Levels,MRC-001,Merchant Sign In,unmapped
+VEN-INV-002,Vendor,INV,Update Quantity,MRC-002,Sign Up,unmapped
+VEN-INV-003,Vendor,INV,Mark Out of Stock,MRC-003,Business Information,unmapped
+VEN-INV-004,Vendor,INV,Low Stock Alerts,MRC-004,Business Verification,unmapped
+VEN-INV-005,Vendor,INV,Inventory Adjustments,MRC-005,Document Submission,unmapped
+VEN-INV-006,Vendor,INV,Inventory History,MRC-006,Location Setup,unmapped
+VEN-INV-007,Vendor,INV,Hide Product,MRC-007,Payment Setup,unmapped
+VEN-INV-008,Vendor,INV,Inventory Search,MRC-008,Catalog Setup,unmapped
+VEN-CAT-001,Vendor,CAT,Create Category,MRC-001,Merchant Sign In,unmapped
+VEN-CAT-002,Vendor,CAT,Edit Category,MRC-002,Sign Up,unmapped
+VEN-CAT-003,Vendor,CAT,Category Ordering,MRC-003,Business Information,unmapped
+VEN-CAT-004,Vendor,CAT,Category Visibility,MRC-004,Business Verification,unmapped
+VEN-CAT-005,Vendor,CAT,Subcategory Management,MRC-005,Document Submission,unmapped
+VEN-PRO-001,Vendor,PRO,Create Discount,MRC-001,Merchant Sign In,unmapped
+VEN-PRO-002,Vendor,PRO,Happy Hour Offers,MRC-002,Sign Up,unmapped
+VEN-PRO-003,Vendor,PRO,Featured Products,MRC-003,Business Information,unmapped
+VEN-PRO-004,Vendor,PRO,Special Deals,MRC-004,Business Verification,unmapped
+VEN-PRO-005,Vendor,PRO,Promotion Scheduling,MRC-005,Document Submission,unmapped
+VEN-PRO-006,Vendor,PRO,Promotion Performance,MRC-006,Location Setup,unmapped
+VEN-PRO-007,Vendor,PRO,Promotion History,MRC-007,Payment Setup,unmapped
+VEN-CMP-001,Vendor,CMP,Available Campaigns,MRC-001,Merchant Sign In,unmapped
+VEN-CMP-002,Vendor,CMP,Join Campaign,MRC-002,Sign Up,unmapped
+VEN-CMP-003,Vendor,CMP,Campaign Performance,MRC-003,Business Information,unmapped
+VEN-CMP-004,Vendor,CMP,Campaign History,MRC-004,Business Verification,unmapped
+VEN-ANA-001,Vendor,ANA,Top Products,MRC-001,Merchant Sign In,unmapped
+VEN-ANA-002,Vendor,ANA,Peak Hours,MRC-002,Sign Up,unmapped
+VEN-ANA-003,Vendor,ANA,Customer Trends,MRC-003,Business Information,unmapped
+VEN-ANA-004,Vendor,ANA,Revenue Analytics,MRC-004,Business Verification,unmapped
+VEN-ANA-005,Vendor,ANA,Order Analytics,MRC-005,Document Submission,unmapped
+VEN-ANA-006,Vendor,ANA,Promotion Analytics,MRC-006,Location Setup,unmapped
+VEN-CUS-001,Vendor,CUS,Customer Directory,MRC-001,Merchant Sign In,unmapped
+VEN-CUS-002,Vendor,CUS,Customer Profiles,MRC-002,Sign Up,unmapped
+VEN-CUS-003,Vendor,CUS,Repeat Customers,MRC-003,Business Information,unmapped
+VEN-CUS-004,Vendor,CUS,Customer Segmentation,MRC-004,Business Verification,unmapped
+VEN-CUS-005,Vendor,CUS,Customer Notes,MRC-005,Document Submission,unmapped
+VEN-REV-001,Vendor,REV,View Reviews,MRC-001,Merchant Sign In,unmapped
+VEN-REV-002,Vendor,REV,Respond to Reviews,MRC-002,Sign Up,unmapped
+VEN-REV-003,Vendor,REV,Rating Breakdown,MRC-003,Business Information,unmapped
+VEN-REV-004,Vendor,REV,Report Abusive Reviews,MRC-004,Business Verification,unmapped
+VEN-REV-005,Vendor,REV,Review Analytics,MRC-005,Document Submission,unmapped
+VEN-FIN-001,Vendor,FIN,Revenue Overview,MRC-001,Merchant Sign In,unmapped
+VEN-FIN-002,Vendor,FIN,Sales Breakdown,MRC-002,Sign Up,unmapped
+VEN-FIN-003,Vendor,FIN,Commission Monitoring,MRC-003,Business Information,unmapped
+VEN-FIN-004,Vendor,FIN,Tax Summary,MRC-004,Business Verification,unmapped
+VEN-FIN-005,Vendor,FIN,Financial Reports,MRC-005,Document Submission,unmapped
+VEN-FIN-006,Vendor,FIN,Transaction History,MRC-006,Location Setup,unmapped
+VEN-PAY-001,Vendor,PAY,Pending Payouts,MRC-001,Merchant Sign In,unmapped
+VEN-PAY-002,Vendor,PAY,Payout History,MRC-002,Sign Up,unmapped
+VEN-PAY-003,Vendor,PAY,Payout Schedule,MRC-003,Business Information,unmapped
+VEN-PAY-004,Vendor,PAY,Bank Details,MRC-004,Business Verification,unmapped
+VEN-PAY-005,Vendor,PAY,Payout Statements,MRC-005,Document Submission,unmapped
+VEN-PAY-006,Vendor,PAY,Payment Disputes,MRC-006,Location Setup,unmapped
+VEN-STF-001,Vendor,STF,Employee Directory,MRC-001,Merchant Sign In,unmapped
+VEN-STF-002,Vendor,STF,Invite Employee,MRC-002,Sign Up,unmapped
+VEN-STF-003,Vendor,STF,Role Assignment,MRC-003,Business Information,unmapped
+VEN-STF-004,Vendor,STF,Permission Management,MRC-004,Business Verification,unmapped
+VEN-STF-005,Vendor,STF,Deactivate Employee,MRC-005,Document Submission,unmapped
+VEN-STF-006,Vendor,STF,Employee Activity,MRC-006,Location Setup,unmapped
+VEN-DOC-001,Vendor,DOC,Business Registration,MRC-001,Merchant Sign In,unmapped
+VEN-DOC-002,Vendor,DOC,KRA PIN,MRC-002,Sign Up,unmapped
+VEN-DOC-003,Vendor,DOC,Licences,MRC-003,Business Information,unmapped
+VEN-DOC-004,Vendor,DOC,Bank Details,MRC-004,Business Verification,unmapped
+VEN-DOC-005,Vendor,DOC,Document Expiry Tracking,MRC-005,Document Submission,review
+VEN-DOC-006,Vendor,DOC,Document History,MRC-006,Location Setup,unmapped
+VEN-NOT-001,Vendor,NOT,New Order Alert,MRC-001,Merchant Sign In,unmapped
+VEN-NOT-002,Vendor,NOT,Rider Arrived Alert,MRC-002,Sign Up,unmapped
+VEN-NOT-003,Vendor,NOT,Payment Received,MRC-003,Business Information,unmapped
+VEN-NOT-004,Vendor,NOT,Customer Review,MRC-004,Business Verification,unmapped
+VEN-NOT-005,Vendor,NOT,Inventory Alert,MRC-005,Document Submission,unmapped
+VEN-NOT-006,Vendor,NOT,Compliance Reminder,MRC-006,Location Setup,unmapped
+VEN-NOT-007,Vendor,NOT,Notification Preferences,MRC-007,Payment Setup,unmapped
+VEN-SET-001,Vendor,SET,Business Profile,MRC-001,Merchant Sign In,unmapped
+VEN-SET-002,Vendor,SET,Operating Hours,MRC-002,Sign Up,unmapped
+VEN-SET-003,Vendor,SET,Delivery Settings,MRC-003,Business Information,unmapped
+VEN-SET-004,Vendor,SET,Pickup Settings,MRC-004,Business Verification,unmapped
+VEN-SET-005,Vendor,SET,Tax Configuration,MRC-005,Document Submission,unmapped
+VEN-SET-006,Vendor,SET,Payment Preferences,MRC-006,Location Setup,unmapped
+VEN-SET-007,Vendor,SET,Notification Preferences,MRC-007,Payment Setup,unmapped
+VEN-SET-008,Vendor,SET,Security Settings,MRC-008,Catalog Setup,unmapped
+RID-DASH-001,Rider,DASH,Availability Status,RDR-001,Rider Entry,unmapped
+RID-DASH-002,Rider,DASH,Assigned Jobs,RDR-002,Sign In,unmapped
+RID-DASH-003,Rider,DASH,Earnings Today,RDR-003,Sign Up,unmapped
+RID-DASH-004,Rider,DASH,Completed Deliveries,RDR-004,Verification,unmapped
+RID-DASH-005,Rider,DASH,Performance Summary,RDR-005,Document Submission,unmapped
+RID-DASH-006,Rider,DASH,Active Delivery Panel,RDR-006,Vehicle Setup,unmapped
+RID-DASH-007,Rider,DASH,Incentives & Bonuses,RDR-007,Onboarding Status,unmapped
+RID-DASH-008,Rider,DASH,Recent Notifications,RDR-008,Rider Workspace,unmapped
+RID-DASH-009,Rider,DASH,Quick Actions,RDR-009,Online/Offline Control,unmapped
+RID-JOB-001,Rider,JOB,Available Jobs,RDR-001,Rider Entry,unmapped
+RID-JOB-002,Rider,JOB,Accept Job,RDR-002,Sign In,unmapped
+RID-JOB-003,Rider,JOB,Decline Job,RDR-003,Sign Up,unmapped
+RID-JOB-004,Rider,JOB,Assigned Jobs,RDR-004,Verification,unmapped
+RID-JOB-005,Rider,JOB,Job Queue,RDR-011,Job Queue,unmapped
+RID-JOB-006,Rider,JOB,Scheduled Jobs,RDR-006,Vehicle Setup,unmapped
+RID-JOB-007,Rider,JOB,Priority Jobs,RDR-007,Onboarding Status,unmapped
+RID-JOB-008,Rider,JOB,Job Details,RDR-008,Rider Workspace,unmapped
+RID-JOB-009,Rider,JOB,Job Search,RDR-009,Online/Offline Control,unmapped
+RID-JOB-010,Rider,JOB,Job Filters,RDR-010,Availability,unmapped
+RID-DEL-001,Rider,DEL,Active Deliveries,RDR-001,Rider Entry,unmapped
+RID-DEL-002,Rider,DEL,Customer Information,RDR-002,Sign In,unmapped
+RID-DEL-003,Rider,DEL,Vendor Information,RDR-003,Sign Up,unmapped
+RID-DEL-004,Rider,DEL,Order Information,RDR-004,Verification,unmapped
+RID-DEL-005,Rider,DEL,Delivery Status Flow,RDR-005,Document Submission,unmapped
+RID-DEL-006,Rider,DEL,Arrived at Vendor,RDR-006,Vehicle Setup,unmapped
+RID-DEL-007,Rider,DEL,Order Picked Up,RDR-007,Onboarding Status,unmapped
+RID-DEL-008,Rider,DEL,On the Way,RDR-008,Rider Workspace,unmapped
+RID-DEL-009,Rider,DEL,Delivered,RDR-009,Online/Offline Control,unmapped
+RID-DEL-010,Rider,DEL,Delivery History,RDR-010,Availability,unmapped
+RID-DEL-011,Rider,DEL,Failed Delivery,RDR-011,Job Queue,unmapped
+RID-DEL-012,Rider,DEL,Cancelled Delivery,RDR-012,Job Offer,unmapped
+RID-EARN-001,Rider,EARN,Earnings Today,RDR-001,Rider Entry,unmapped
+RID-EARN-002,Rider,EARN,Earnings This Week,RDR-002,Sign In,unmapped
+RID-EARN-003,Rider,EARN,Earnings This Month,RDR-003,Sign Up,unmapped
+RID-EARN-004,Rider,EARN,Delivery Earnings,RDR-004,Verification,unmapped
+RID-EARN-005,Rider,EARN,Bonuses,RDR-005,Document Submission,unmapped
+RID-EARN-006,Rider,EARN,Tips,RDR-006,Vehicle Setup,unmapped
+RID-EARN-007,Rider,EARN,Total Payable,RDR-007,Onboarding Status,unmapped
+RID-EARN-008,Rider,EARN,Transaction Breakdown,RDR-008,Rider Workspace,unmapped
+RID-EARN-009,Rider,EARN,Statement Downloads,RDR-009,Online/Offline Control,unmapped
+RID-STR-001,Rider,STR,Delivery Streaks,RDR-001,Rider Entry,unmapped
+RID-STR-002,Rider,STR,Daily Challenges,RDR-002,Sign In,unmapped
+RID-STR-003,Rider,STR,Weekly Challenges,RDR-003,Sign Up,unmapped
+RID-STR-004,Rider,STR,Milestone Achievements,RDR-004,Verification,unmapped
+RID-STR-005,Rider,STR,Performance Bonuses,RDR-005,Document Submission,unmapped
+RID-STR-006,Rider,STR,Reward History,RDR-006,Vehicle Setup,unmapped
+RID-STR-007,Rider,STR,Achievement Badges,RDR-007,Onboarding Status,unmapped
+RID-PERF-001,Rider,PERF,Acceptance Rate,RDR-001,Rider Entry,unmapped
+RID-PERF-002,Rider,PERF,Delivery Speed,RDR-002,Sign In,unmapped
+RID-PERF-003,Rider,PERF,Customer Rating,RDR-003,Sign Up,unmapped
+RID-PERF-004,Rider,PERF,On-Time Rate,RDR-004,Verification,unmapped
+RID-PERF-005,Rider,PERF,Completed Deliveries,RDR-005,Document Submission,unmapped
+RID-PERF-006,Rider,PERF,Overall Performance Score,RDR-006,Vehicle Setup,unmapped
+RID-PERF-007,Rider,PERF,Performance Trends,RDR-007,Onboarding Status,unmapped
+RID-NAV-001,Rider,NAV,Merchant Navigation,RDR-001,Rider Entry,unmapped
+RID-NAV-002,Rider,NAV,Guest Navigation,RDR-002,Sign In,unmapped
+RID-NAV-003,Rider,NAV,Google Maps Router,RDR-003,Sign Up,unmapped
+RID-NAV-004,Rider,NAV,Waze Router,RDR-004,Verification,unmapped
+RID-NAV-005,Rider,NAV,One-Click Route Engine,RDR-005,Document Submission,unmapped
+RID-NAV-006,Rider,NAV,Estimated Arrival Time,RDR-006,Vehicle Setup,unmapped
+RID-NAV-007,Rider,NAV,Distance Tracking,RDR-007,Onboarding Status,unmapped
+RID-NAV-008,Rider,NAV,Location Updates,RDR-008,Rider Workspace,unmapped
+RID-QR-001,Rider,QR,Pickup QR Scanning,RDR-001,Rider Entry,unmapped
+RID-QR-002,Rider,QR,Delivery QR Scanning,RDR-002,Sign In,unmapped
+RID-QR-003,Rider,QR,OTP Code Fallback,RDR-003,Sign Up,unmapped
+RID-QR-004,Rider,QR,Photo Proof Capture,RDR-004,Verification,unmapped
+RID-QR-005,Rider,QR,QR Validation History,RDR-005,Document Submission,unmapped
+RID-QR-006,Rider,QR,Invalid QR Handling,RDR-006,Vehicle Setup,unmapped
+RID-DOC-001,Rider,DOC,Driving Licence,RDR-001,Rider Entry,unmapped
+RID-DOC-002,Rider,DOC,National ID,RDR-002,Sign In,unmapped
+RID-DOC-003,Rider,DOC,Insurance Policies,RDR-003,Sign Up,unmapped
+RID-DOC-004,Rider,DOC,Good Conduct Certificate,RDR-004,Verification,unmapped
+RID-DOC-005,Rider,DOC,Document Expiry Tracking,RDR-005,Document Submission,review
+RID-DOC-006,Rider,DOC,Document Approval Status,RDR-006,Vehicle Setup,unmapped
+RID-INC-001,Rider,INC,Report Incident,RDR-001,Rider Entry,unmapped
+RID-INC-002,Rider,INC,Customer Unavailable,RDR-002,Sign In,unmapped
+RID-INC-003,Rider,INC,Wrong Address,RDR-003,Sign Up,unmapped
+RID-INC-004,Rider,INC,Vehicle Breakdown,RDR-004,Verification,unmapped
+RID-INC-005,Rider,INC,Security Issue,RDR-005,Document Submission,unmapped
+RID-INC-006,Rider,INC,Road Accident,RDR-006,Vehicle Setup,unmapped
+RID-INC-007,Rider,INC,Incident History,RDR-007,Onboarding Status,unmapped
+RID-INC-008,Rider,INC,Incident Status,RDR-008,Rider Workspace,unmapped
+RID-NOT-001,Rider,NOT,New Assignment,RDR-001,Rider Entry,unmapped
+RID-NOT-002,Rider,NOT,Vendor Ready,RDR-002,Sign In,unmapped
+RID-NOT-003,Rider,NOT,Customer Message,RDR-003,Sign Up,unmapped
+RID-NOT-004,Rider,NOT,Payment Update,RDR-004,Verification,unmapped
+RID-NOT-005,Rider,NOT,Emergency Alert,RDR-005,Document Submission,unmapped
+RID-NOT-006,Rider,NOT,Compliance Reminder,RDR-006,Vehicle Setup,unmapped
+RID-NOT-007,Rider,NOT,Notification Preferences,RDR-007,Onboarding Status,unmapped
+RID-PRO-001,Rider,PRO,Personal Information,RDR-001,Rider Entry,unmapped
+RID-PRO-002,Rider,PRO,Rider ID,RDR-002,Sign In,match
+RID-PRO-003,Rider,PRO,Motorcycle Registration,RDR-003,Sign Up,unmapped
+RID-PRO-004,Rider,PRO,Phone Number,RDR-004,Verification,unmapped
+RID-PRO-005,Rider,PRO,Employment Status,RDR-005,Document Submission,unmapped
+RID-PRO-006,Rider,PRO,Emergency Contacts,RDR-006,Vehicle Setup,unmapped
+RID-PRO-007,Rider,PRO,Payment Method,RDR-007,Onboarding Status,unmapped
+RID-PRO-008,Rider,PRO,Security Settings,RDR-008,Rider Workspace,unmapped
+RID-PRO-009,Rider,PRO,Activity History,RDR-009,Online/Offline Control,unmapped
+HST-DASH-001,Host,DASH,Property Occupancy,HST-001,Host Entry,review
+HST-DASH-002,Host,DASH,Active Guests,HST-002,Sign In,review
+HST-DASH-003,Host,DASH,Revenue Summary,HST-003,Organization Setup,review
+HST-DASH-004,Host,DASH,Commission Summary,HST-004,Host Workspace,review
+HST-DASH-005,Host,DASH,Active Orders,HST-005,Properties,review
+HST-DASH-006,Host,DASH,Pending Tasks,HST-006,Property Detail,review
+HST-DASH-007,Host,DASH,Operational Alerts,HST-007,Create Property,review
+HST-DASH-008,Host,DASH,Recent Activity,HST-008,Edit Property,review
+HST-DASH-009,Host,DASH,Quick Actions,HST-009,Property Media,review
+HST-PROP-001,Host,PROP,Create Property,HST-001,Host Entry,review
+HST-PROP-002,Host,PROP,Edit Property,HST-002,Sign In,match
+HST-PROP-003,Host,PROP,Property Profile,HST-003,Organization Setup,review
+HST-PROP-004,Host,PROP,Property Amenities,HST-004,Host Workspace,review
+HST-PROP-005,Host,PROP,Property Location,HST-005,Properties,review
+HST-PROP-006,Host,PROP,Property Policies,HST-006,Property Detail,match
+HST-PROP-007,Host,PROP,Property Status,HST-007,Create Property,match
+HST-PROP-008,Host,PROP,Property Visibility,HST-008,Edit Property,match
+HST-PROP-009,Host,PROP,Multi-Property Management,HST-009,Property Media,match
+HST-PROP-010,Host,PROP,Property Images,HST-010,Amenities,review
+HST-MGT-001,Host,MGT,Room Management,HST-001,Host Entry,review
+HST-MGT-002,Host,MGT,Room Status,HST-002,Sign In,review
+HST-MGT-003,Host,MGT,Floor Management,HST-003,Organization Setup,review
+HST-MGT-004,Host,MGT,Maintenance Requests,HST-004,Host Workspace,review
+HST-MGT-005,Host,MGT,Cleaning Status,HST-005,Properties,review
+HST-MGT-006,Host,MGT,Inspection Records,HST-006,Property Detail,review
+HST-MGT-007,Host,MGT,Utility Tracking,HST-007,Create Property,review
+HST-MGT-008,Host,MGT,Operational Schedules,HST-008,Edit Property,review
+HST-CPL-001,Host,CPL,Property Permits,HST-001,Host Entry,review
+HST-CPL-002,Host,CPL,Safety Certificates,HST-002,Sign In,review
+HST-CPL-003,Host,CPL,Insurance Documents,HST-003,Organization Setup,review
+HST-CPL-004,Host,CPL,Inspection Reports,HST-004,Host Workspace,review
+HST-CPL-005,Host,CPL,Compliance Reminders,HST-005,Properties,review
+HST-CPL-006,Host,CPL,Audit Readiness,HST-006,Property Detail,review
+HST-ERP-001,Host,ERP,Operational Planning,HST-001,Host Entry,review
+HST-ERP-002,Host,ERP,Internal Assets,HST-002,Sign In,review
+HST-ERP-003,Host,ERP,Maintenance Schedules,HST-003,Organization Setup,review
+HST-ERP-004,Host,ERP,Housekeeping Planning,HST-004,Host Workspace,review
+HST-ERP-005,Host,ERP,Staff Scheduling,HST-005,Properties,review
+HST-ERP-006,Host,ERP,Operational Reports,HST-006,Property Detail,review
+HST-ERP-007,Host,ERP,Workflow Monitoring,HST-007,Create Property,review
+HST-GST-001,Host,GST,Guest Directory,HST-001,Host Entry,review
+HST-GST-002,Host,GST,Current Guests,HST-002,Sign In,review
+HST-GST-003,Host,GST,Arrivals and Departures,HST-003,Organization Setup,review
+HST-GST-004,Host,GST,Guest Profiles,HST-004,Host Workspace,review
+HST-GST-005,Host,GST,Room Assignments,HST-005,Properties,review
+HST-GST-006,Host,GST,Guest Preferences,HST-006,Property Detail,review
+HST-GST-007,Host,GST,Guest Requests,HST-007,Create Property,review
+HST-GST-008,Host,GST,VIP Identification,HST-008,Edit Property,review
+HST-ORD-001,Host,ORD,Guest Order Visibility,HST-001,Host Entry,review
+HST-ORD-002,Host,ORD,Order Tracking,HST-002,Sign In,review
+HST-ORD-003,Host,ORD,Merchant Coordination,HST-003,Organization Setup,review
+HST-ORD-004,Host,ORD,Order History,HST-004,Host Workspace,review
+HST-ORD-005,Host,ORD,Issue Reporting,HST-005,Properties,review
+HST-REV-001,Host,REV,Revenue Overview,HST-001,Host Entry,review
+HST-REV-002,Host,REV,Accommodation Revenue,HST-002,Sign In,review
+HST-REV-003,Host,REV,Service Revenue,HST-003,Organization Setup,review
+HST-REV-004,Host,REV,Revenue Trends,HST-004,Host Workspace,review
+HST-REV-005,Host,REV,Revenue Reports,HST-005,Properties,review
+HST-COM-001,Host,COM,Commission Overview,HST-001,Host Entry,review
+HST-COM-002,Host,COM,Commission Rules,HST-002,Sign In,review
+HST-COM-003,Host,COM,Pending Commissions,HST-003,Organization Setup,review
+HST-COM-004,Host,COM,Completed Commissions,HST-004,Host Workspace,review
+HST-COM-005,Host,COM,Commission Reports,HST-005,Properties,review
+HST-HAB-001,Host,HAB,Purchase History,HST-001,Host Entry,review
+HST-HAB-002,Host,HAB,Frequently Ordered Products,HST-002,Sign In,review
+HST-HAB-003,Host,HAB,Favourite Merchants,HST-003,Organization Setup,review
+HST-HAB-004,Host,HAB,Spending Trends,HST-004,Host Workspace,review
+HST-HAB-005,Host,HAB,Visit Frequency,HST-005,Properties,review
+HST-HAB-006,Host,HAB,Recommendation Insights,HST-006,Property Detail,review
+HST-ANA-001,Host,ANA,Occupancy Analytics,HST-001,Host Entry,review
+HST-ANA-002,Host,ANA,Guest Satisfaction,HST-002,Sign In,review
+HST-ANA-003,Host,ANA,Revenue Analytics,HST-060,Revenue Analytics,review
+HST-ANA-004,Host,ANA,Commission Analytics,HST-004,Host Workspace,review
+HST-ANA-005,Host,ANA,Operational Efficiency,HST-005,Properties,review
+HST-ANA-006,Host,ANA,Property Performance,HST-006,Property Detail,match
+HST-DOC-001,Host,DOC,Property Registration,HST-001,Host Entry,review
+HST-DOC-002,Host,DOC,Insurance Documents,HST-002,Sign In,review
+HST-DOC-003,Host,DOC,Compliance Documents,HST-003,Organization Setup,review
+HST-DOC-004,Host,DOC,Maintenance Records,HST-004,Host Workspace,review
+HST-DOC-005,Host,DOC,Inspection Reports,HST-005,Properties,review
+HST-DOC-006,Host,DOC,Document Expiry Tracking,HST-006,Property Detail,review
+HST-NOT-001,Host,NOT,Guest Arrival Alert,HST-001,Host Entry,review
+HST-NOT-002,Host,NOT,Guest Departure Alert,HST-002,Sign In,review
+HST-NOT-003,Host,NOT,Reservation Update,HST-003,Organization Setup,review
+HST-NOT-004,Host,NOT,Maintenance Alert,HST-004,Host Workspace,review
+HST-NOT-005,Host,NOT,Commission Update,HST-005,Properties,review
+HST-NOT-006,Host,NOT,Compliance Reminder,HST-006,Property Detail,review
+HST-NOT-007,Host,NOT,Notification Preferences,HST-007,Create Property,review
+GST-DASH-001,Guest,DASH,Greeting & Property Context,CNS-001,Splash,unmapped
+GST-DASH-002,Guest,DASH,Active Orders,CNS-002,Welcome,unmapped
+GST-DASH-003,Guest,DASH,Quick Actions,CNS-003,Sign In,unmapped
+GST-DASH-004,Guest,DASH,Total Spent Today,CNS-004,Sign Up,unmapped
+GST-DASH-005,Guest,DASH,Pending Deliveries,CNS-005,Phone Verification,unmapped
+GST-DASH-006,Guest,DASH,Active Promotions,CNS-006,Email Verification,unmapped
+GST-DASH-007,Guest,DASH,Estimated Delivery Time,CNS-007,MFA Verification,unmapped
+GST-DASH-008,Guest,DASH,Current Order Tracker,CNS-008,Account Recovery,unmapped
+GST-DASH-009,Guest,DASH,Rider Location Map,CNS-009,Reset Credential,unmapped
+GST-DASH-010,Guest,DASH,Vendor Preparation Monitor,CNS-010,Profile Setup,unmapped
+GST-DASH-011,Guest,DASH,Recommendations,CNS-011,Permission Introduction,unmapped
+GST-DASH-012,Guest,DASH,Recently Viewed,CNS-012,Consumer Home,unmapped
+GST-DASH-013,Guest,DASH,Loyalty Summary,CNS-013,Service Discovery,unmapped
+GST-DASH-014,Guest,DASH,Recent Notifications,CNS-014,Category,unmapped
+GST-CAT-001,Guest,CAT,Browse Food,CNS-001,Splash,unmapped
+GST-CAT-002,Guest,CAT,Browse Drinks,CNS-002,Welcome,unmapped
+GST-CAT-003,Guest,CAT,Browse Groceries,CNS-003,Sign In,unmapped
+GST-CAT-004,Guest,CAT,Browse Medicine,CNS-004,Sign Up,unmapped
+GST-CAT-005,Guest,CAT,Browse Laundry Services,CNS-005,Phone Verification,unmapped
+GST-CAT-006,Guest,CAT,Browse Tours,CNS-006,Email Verification,unmapped
+GST-CAT-007,Guest,CAT,Featured Categories,CNS-007,MFA Verification,unmapped
+GST-CAT-008,Guest,CAT,Popular Categories,CNS-008,Account Recovery,unmapped
+GST-CAT-009,Guest,CAT,Recently Used Categories,CNS-009,Reset Credential,unmapped
+GST-CAT-010,Guest,CAT,Category Search,CNS-010,Profile Setup,unmapped
+GST-CAT-011,Guest,CAT,Category Filters,CNS-011,Permission Introduction,unmapped
+GST-PROD-001,Guest,PROD,Product Listing,CNS-001,Splash,unmapped
+GST-PROD-002,Guest,PROD,Product Details,CNS-002,Welcome,unmapped
+GST-PROD-003,Guest,PROD,Product Variants,CNS-003,Sign In,unmapped
+GST-PROD-004,Guest,PROD,Product Add-ons,CNS-004,Sign Up,unmapped
+GST-PROD-005,Guest,PROD,Quantity Selector,CNS-005,Phone Verification,unmapped
+GST-PROD-006,Guest,PROD,Dynamic Price Calculator,CNS-006,Email Verification,unmapped
+GST-PROD-007,Guest,PROD,Add to Cart,CNS-007,MFA Verification,unmapped
+GST-PROD-008,Guest,PROD,Availability Status,CNS-008,Account Recovery,unmapped
+GST-PROD-009,Guest,PROD,Delivery Time Estimate,CNS-009,Reset Credential,unmapped
+GST-PROD-010,Guest,PROD,Product Ratings,CNS-010,Profile Setup,unmapped
+GST-PROD-011,Guest,PROD,Related Products,CNS-011,Permission Introduction,unmapped
+GST-PROD-012,Guest,PROD,Favourite Products,CNS-012,Consumer Home,unmapped
+GST-PROD-013,Guest,PROD,Product Search,CNS-013,Service Discovery,unmapped
+GST-PROD-014,Guest,PROD,Product Filters,CNS-014,Category,unmapped
+GST-PROD-015,Guest,PROD,Product Sharing,CNS-015,Merchant Discovery,unmapped
+GST-CART-001,Guest,CART,Items Breakdown,CNS-001,Splash,unmapped
+GST-CART-002,Guest,CART,Cost Breakdown,CNS-002,Welcome,unmapped
+GST-CART-003,Guest,CART,Delivery Fee Calculation,CNS-003,Sign In,unmapped
+GST-CART-004,Guest,CART,Service Fee Calculation,CNS-004,Sign Up,unmapped
+GST-CART-005,Guest,CART,Total Aggregated Cost,CNS-005,Phone Verification,unmapped
+GST-CART-006,Guest,CART,Edit Cart Items,CNS-006,Email Verification,unmapped
+GST-CART-007,Guest,CART,Remove Items,CNS-007,MFA Verification,unmapped
+GST-CART-008,Guest,CART,Save for Later,CNS-008,Account Recovery,unmapped
+GST-CART-009,Guest,CART,Special Requests,CNS-009,Reset Credential,unmapped
+GST-CART-010,Guest,CART,Merchant Grouping,CNS-010,Profile Setup,unmapped
+GST-CART-011,Guest,CART,Proceed to Checkout,CNS-011,Permission Introduction,unmapped
+GST-CART-012,Guest,CART,Cart Persistence,CNS-012,Consumer Home,unmapped
+GST-CHK-001,Guest,CHK,Delivery Destination,CNS-001,Splash,unmapped
+GST-CHK-002,Guest,CHK,Room Selection,CNS-002,Welcome,unmapped
+GST-CHK-003,Guest,CHK,Pickup Option,CNS-003,Sign In,unmapped
+GST-CHK-004,Guest,CHK,Schedule Order,CNS-004,Sign Up,unmapped
+GST-CHK-005,Guest,CHK,Payment Method Selection,CNS-048,Payment Method Selection,review
+GST-CHK-006,Guest,CHK,Promo Code Application,CNS-006,Email Verification,unmapped
+GST-CHK-007,Guest,CHK,Order Confirmation Review,CNS-007,MFA Verification,unmapped
+GST-CHK-008,Guest,CHK,Terms Acceptance,CNS-008,Account Recovery,unmapped
+GST-CHK-009,Guest,CHK,Place Order,CNS-009,Reset Credential,unmapped
+GST-CHK-010,Guest,CHK,Checkout Validation,CNS-010,Profile Setup,unmapped
+GST-CHK-011,Guest,CHK,Checkout Abandonment Recovery,CNS-011,Permission Introduction,unmapped
+GST-ORD-001,Guest,ORD,Active Orders,CNS-001,Splash,unmapped
+GST-ORD-002,Guest,ORD,Order History,CNS-002,Welcome,unmapped
+GST-ORD-003,Guest,ORD,Order Details,CNS-003,Sign In,unmapped
+GST-ORD-004,Guest,ORD,Reorder,CNS-004,Sign Up,unmapped
+GST-ORD-005,Guest,ORD,Download Receipt,CNS-005,Phone Verification,unmapped
+GST-ORD-006,Guest,ORD,Cancel Order,CNS-006,Email Verification,unmapped
+GST-ORD-007,Guest,ORD,Contact Merchant,CNS-007,MFA Verification,unmapped
+GST-ORD-008,Guest,ORD,Report Order Issue,CNS-008,Account Recovery,unmapped
+GST-ORD-009,Guest,ORD,Order Search,CNS-009,Reset Credential,unmapped
+GST-ORD-010,Guest,ORD,Order Filters,CNS-010,Profile Setup,unmapped
+GST-TRK-001,Guest,TRK,Order Placed Milestone,CNS-001,Splash,unmapped
+GST-TRK-002,Guest,TRK,Vendor Accepted Milestone,CNS-002,Welcome,unmapped
+GST-TRK-003,Guest,TRK,Preparing Milestone,CNS-003,Sign In,unmapped
+GST-TRK-004,Guest,TRK,Ready for Pickup Milestone,CNS-004,Sign Up,unmapped
+GST-TRK-005,Guest,TRK,Picked Up Milestone,CNS-005,Phone Verification,unmapped
+GST-TRK-006,Guest,TRK,On the Way Milestone,CNS-006,Email Verification,unmapped
+GST-TRK-007,Guest,TRK,Delivered Milestone,CNS-007,MFA Verification,unmapped
+GST-TRK-008,Guest,TRK,Live Rider Map,CNS-008,Account Recovery,unmapped
+GST-TRK-009,Guest,TRK,Dynamic ETA,CNS-009,Reset Credential,unmapped
+GST-TRK-010,Guest,TRK,Vendor Preparation Progress,CNS-010,Profile Setup,unmapped
+GST-TRK-011,Guest,TRK,Rider Information,CNS-011,Permission Introduction,unmapped
+GST-TRK-012,Guest,TRK,Delivery Confirmation,CNS-012,Consumer Home,unmapped
+GST-PAY-001,Guest,PAY,Card Payment,CNS-001,Splash,unmapped
+GST-PAY-002,Guest,PAY,M-Pesa Payment,CNS-002,Welcome,unmapped
+GST-PAY-003,Guest,PAY,Wallet Payment,CNS-003,Sign In,unmapped
+GST-PAY-004,Guest,PAY,Payment Status Tracking,CNS-004,Sign Up,unmapped
+GST-PAY-005,Guest,PAY,Payment Receipt,CNS-005,Phone Verification,unmapped
+GST-PAY-006,Guest,PAY,Transaction History,CNS-006,Email Verification,unmapped
+GST-PAY-007,Guest,PAY,Refund Visibility,CNS-007,MFA Verification,unmapped
+GST-PAY-008,Guest,PAY,Failed Payment Handling,CNS-008,Account Recovery,unmapped
+GST-PAY-009,Guest,PAY,Saved Payment Methods,CNS-009,Reset Credential,unmapped
+GST-PAY-010,Guest,PAY,Tax and Fee Breakdown,CNS-010,Profile Setup,unmapped
+GST-REV-001,Guest,REV,Rate Food Quality,CNS-001,Splash,unmapped
+GST-REV-002,Guest,REV,Rate Delivery Speed,CNS-002,Welcome,unmapped
+GST-REV-003,Guest,REV,Rate Rider Experience,CNS-003,Sign In,unmapped
+GST-REV-004,Guest,REV,Rate Vendor Service,CNS-004,Sign Up,unmapped
+GST-REV-005,Guest,REV,Write Text Review,CNS-005,Phone Verification,unmapped
+GST-REV-006,Guest,REV,Attach Review Photos,CNS-006,Email Verification,unmapped
+GST-REV-007,Guest,REV,Edit Review,CNS-007,MFA Verification,unmapped
+GST-REV-008,Guest,REV,Review History,CNS-008,Account Recovery,unmapped
+GST-REV-009,Guest,REV,Report Review Issue,CNS-009,Reset Credential,unmapped
+GST-LOY-001,Guest,LOY,Points Balance,CNS-001,Splash,unmapped
+GST-LOY-002,Guest,LOY,Tier Status,CNS-002,Welcome,unmapped
+GST-LOY-003,Guest,LOY,Reward History,CNS-003,Sign In,unmapped
+GST-LOY-004,Guest,LOY,Redeem Rewards,CNS-004,Sign Up,unmapped
+GST-LOY-005,Guest,LOY,Available Rewards,CNS-005,Phone Verification,unmapped
+GST-LOY-006,Guest,LOY,Discount Allocations,CNS-006,Email Verification,unmapped
+GST-LOY-007,Guest,LOY,Free Delivery Access,CNS-007,MFA Verification,unmapped
+GST-LOY-008,Guest,LOY,Priority Support Routing,CNS-008,Account Recovery,unmapped
+GST-LOY-009,Guest,LOY,Achievements,CNS-009,Reset Credential,unmapped
+GST-LOY-010,Guest,LOY,Referral Tracking,CNS-010,Profile Setup,unmapped
+GST-NOT-001,Guest,NOT,Order Confirmation,CNS-001,Splash,unmapped
+GST-NOT-002,Guest,NOT,Vendor Acceptance,CNS-002,Welcome,unmapped
+GST-NOT-003,Guest,NOT,Rider Assignment,CNS-003,Sign In,unmapped
+GST-NOT-004,Guest,NOT,Order Picked Up,CNS-004,Sign Up,unmapped
+GST-NOT-005,Guest,NOT,Delivery Completed,CNS-005,Phone Verification,unmapped
+GST-NOT-006,Guest,NOT,Promotion Alerts,CNS-006,Email Verification,unmapped
+GST-NOT-007,Guest,NOT,Property Announcements,CNS-007,MFA Verification,unmapped
+GST-NOT-008,Guest,NOT,Support Replies,CNS-008,Account Recovery,unmapped
+GST-NOT-009,Guest,NOT,Payment Updates,CNS-009,Reset Credential,unmapped
+GST-NOT-010,Guest,NOT,Notification Preferences,CNS-010,Profile Setup,unmapped
+GST-PRO-001,Guest,PRO,Personal Information,CNS-001,Splash,unmapped
+GST-PRO-002,Guest,PRO,Phone Number,CNS-002,Welcome,unmapped
+GST-PRO-003,Guest,PRO,Email Address,CNS-003,Sign In,unmapped
+GST-PRO-004,Guest,PRO,Saved Locations,CNS-004,Sign Up,unmapped
+GST-PRO-005,Guest,PRO,Payment Methods,CNS-005,Phone Verification,unmapped
+GST-PRO-006,Guest,PRO,Favourite Merchants,CNS-006,Email Verification,unmapped
+GST-PRO-007,Guest,PRO,Language Preferences,CNS-007,MFA Verification,unmapped
+GST-PRO-008,Guest,PRO,Notification Preferences,CNS-008,Account Recovery,unmapped
+GST-PRO-009,Guest,PRO,Security Settings,CNS-009,Reset Credential,unmapped
+GST-PRO-010,Guest,PRO,Privacy Settings,CNS-010,Profile Setup,unmapped
+GST-PRO-011,Guest,PRO,Activity History,CNS-011,Permission Introduction,unmapped
+GST-PRO-012,Guest,PRO,Order History Access,CNS-012,Consumer Home,unmapped
+QR-GEN-001,QR,GEN,Generate QR,CNS-001,Splash,review
+QR-GEN-002,QR,GEN,Regenerate QR,CNS-002,Welcome,review
+QR-GEN-003,QR,GEN,Disable QR,CNS-003,Sign In,review
+QR-GEN-004,QR,GEN,Expire QR,CNS-004,Sign Up,review
+QR-GEN-005,QR,GEN,Permanent QR Support,HST-005,Properties,unmapped
+QR-GEN-006,QR,GEN,Temporary QR Support,PUB-006,Selection,unmapped
+QR-GEN-007,QR,GEN,Dynamic QR Generation,ADM-007,Merchants,unmapped
+QR-GEN-008,QR,GEN,Static QR Generation,RDR-008,Rider Workspace,unmapped
+QR-GEN-009,QR,GEN,Encrypted QR Payloads,ADM-009,Riders,unmapped
+QR-GEN-010,QR,GEN,QR Branding,RDR-010,Availability,review
+QR-GEN-011,QR,GEN,QR Preview,MRC-011,Merchant Workspace,review
+QR-GEN-012,QR,GEN,QR Download,CNS-012,Consumer Home,review
+QR-GEN-013,QR,GEN,QR Printing Readiness,MRC-013,Activity,unmapped
+QR-GEN-014,QR,GEN,QR Sharing,CNS-014,Category,review
+QR-LIF-001,QR,LIF,Generated Stage,CNS-001,Splash,unmapped
+QR-LIF-002,QR,LIF,Activated Stage,CNS-002,Welcome,unmapped
+QR-LIF-003,QR,LIF,Assigned Stage,CNS-003,Sign In,unmapped
+QR-LIF-004,QR,LIF,Scanned Stage,CNS-004,Sign Up,unmapped
+QR-LIF-005,QR,LIF,Verified Stage,HST-005,Properties,unmapped
+QR-LIF-006,QR,LIF,Completed Stage,PUB-006,Selection,unmapped
+QR-LIF-007,QR,LIF,Expired Stage,ADM-007,Merchants,unmapped
+QR-LIF-008,QR,LIF,Revoked Stage,RDR-008,Rider Workspace,unmapped
+QR-LIF-009,QR,LIF,Archived Stage,ADM-009,Riders,unmapped
+QR-LIF-010,QR,LIF,Lifecycle Transition Rules,RDR-010,Availability,unmapped
+QR-LIF-011,QR,LIF,Lifecycle History,MRC-011,Merchant Workspace,unmapped
+QR-VER-001,QR,VER,Scan QR,CNS-001,Splash,review
+QR-VER-002,QR,VER,Decode QR,CNS-002,Welcome,review
+QR-VER-003,QR,VER,Validate Payload,CNS-003,Sign In,unmapped
+QR-VER-004,QR,VER,Verify Ownership,CNS-004,Sign Up,unmapped
+QR-VER-005,QR,VER,Verify Permissions,HST-005,Properties,unmapped
+QR-VER-006,QR,VER,Verify Expiry,PUB-006,Selection,unmapped
+QR-VER-007,QR,VER,Verify Location Readiness,ADM-007,Merchants,unmapped
+QR-VER-008,QR,VER,Verify Transaction,RDR-008,Rider Workspace,unmapped
+QR-VER-009,QR,VER,Verify User,ADM-009,Riders,unmapped
+QR-VER-010,QR,VER,Verify Property,RDR-010,Availability,unmapped
+QR-VER-011,QR,VER,Verify Merchant,MRC-011,Merchant Workspace,match
+QR-VER-012,QR,VER,Verify Rider,RDR-012,Job Offer,review
+QR-VER-013,QR,VER,Verification Result,MRC-013,Activity,unmapped
+QR-VER-014,QR,VER,Verification History,CNS-014,Category,unmapped
+QR-PROP-001,QR,PROP,Property Identification,CNS-001,Splash,unmapped
+QR-PROP-002,QR,PROP,Guest Access,CNS-002,Welcome,unmapped
+QR-PROP-003,QR,PROP,Room Identification,CNS-003,Sign In,unmapped
+QR-PROP-004,QR,PROP,Facility Access,CNS-004,Sign Up,unmapped
+QR-PROP-005,QR,PROP,Service Requests,HST-005,Properties,unmapped
+QR-PROP-006,QR,PROP,Property Announcements Readiness,HST-006,Property Detail,review
+QR-PROP-007,QR,PROP,Property Authentication,HST-007,Create Property,review
+QR-PROP-008,QR,PROP,Instant Food Engine,RDR-008,Rider Workspace,unmapped
+QR-PROP-009,QR,PROP,Instant Drinks Engine,ADM-009,Riders,unmapped
+QR-PROP-010,QR,PROP,Instant Pharmacy Engine,RDR-010,Availability,unmapped
+QR-PROP-011,QR,PROP,Instant Groceries Engine,MRC-011,Merchant Workspace,unmapped
+QR-PROP-012,QR,PROP,Instant Laundry Services Engine,CNS-012,Consumer Home,unmapped
+QR-PROP-013,QR,PROP,Instant Tours Booking Engine,MRC-013,Activity,unmapped
+QR-VEN-001,QR,VEN,Merchant Verification,MRC-001,Merchant Sign In,match
+QR-VEN-002,QR,VEN,Business Authentication,CNS-002,Welcome,unmapped
+QR-VEN-003,QR,VEN,Store Identification,CNS-003,Sign In,unmapped
+QR-VEN-004,QR,VEN,Counter Verification,RDR-004,Verification,match
+QR-VEN-005,QR,VEN,Merchant Profile Access,MRC-005,Document Submission,review
+QR-VEN-006,QR,VEN,Operational Verification,CNS-006,Email Verification,review
+QR-VEN-007,QR,VEN,Pickup QR Generation,ADM-007,Merchants,unmapped
+QR-VEN-008,QR,VEN,Confirm Pickup,RDR-008,Rider Workspace,unmapped
+QR-VEN-009,QR,VEN,Validate Correct Order Items,ADM-009,Riders,unmapped
+QR-VEN-010,QR,VEN,Lock Order Assignment Dynamically,RDR-010,Availability,unmapped
+QR-RID-001,QR,RID,Identity Verification,CNS-001,Splash,unmapped
+QR-RID-002,QR,RID,Assignment Verification,CNS-002,Welcome,unmapped
+QR-RID-003,QR,RID,Operational Status,CNS-003,Sign In,unmapped
+QR-RID-004,QR,RID,Security Validation,CNS-004,Sign Up,unmapped
+QR-RID-005,QR,RID,Rider Profile Access,RDR-005,Document Submission,review
+QR-DEL-001,QR,DEL,Guest Verification,CNS-001,Splash,unmapped
+QR-DEL-002,QR,DEL,Delivery Confirmation,CNS-002,Welcome,unmapped
+QR-DEL-003,QR,DEL,Completion Timestamp,CNS-003,Sign In,unmapped
+QR-DEL-004,QR,DEL,Proof of Delivery,CNS-004,Sign Up,unmapped
+QR-DEL-005,QR,DEL,Delivery History,OPS-005,Delivery Monitor,review
+QR-DEL-006,QR,DEL,Failed Verification Handling,CNS-006,Email Verification,review
+QR-DEL-007,QR,DEL,OTP Code Fallback,ADM-007,Merchants,unmapped
+QR-DEL-008,QR,DEL,Order Closure,RDR-008,Rider Workspace,unmapped
+QR-SEC-001,QR,SEC,Encrypted Payloads,CNS-001,Splash,unmapped
+QR-SEC-002,QR,SEC,Signed QR Codes,CNS-002,Welcome,unmapped
+QR-SEC-003,QR,SEC,Secure Token Generation,CNS-003,Sign In,unmapped
+QR-SEC-004,QR,SEC,Replay Protection,CNS-004,Sign Up,unmapped
+QR-SEC-005,QR,SEC,Expiration Enforcement,HST-005,Properties,unmapped
+QR-SEC-006,QR,SEC,Scan Validation,PUB-006,Selection,unmapped
+QR-SEC-007,QR,SEC,Fraud Detection,ADM-007,Merchants,unmapped
+QR-SEC-008,QR,SEC,Audit Logging,RDR-008,Rider Workspace,unmapped
+QR-SEC-009,QR,SEC,Device Validation Readiness,ADM-009,Riders,unmapped
+QR-SEC-010,QR,SEC,Session Validation,RDR-010,Availability,unmapped
+QR-SEC-011,QR,SEC,Tamper Detection,MRC-011,Merchant Workspace,unmapped
+QR-SEC-012,QR,SEC,Duplicate Detection,CNS-012,Consumer Home,unmapped
+QR-DSN-001,QR,DSN,Solid White Background,CNS-001,Splash,unmapped
+QR-DSN-002,QR,DSN,Dark Charcoal Modules,CNS-002,Welcome,unmapped
+QR-DSN-003,QR,DSN,Amber or Gold Accent,CNS-003,Sign In,unmapped
+QR-DSN-004,QR,DSN,NEXG Brand Mark Center,CNS-004,Sign Up,unmapped
+QR-DSN-005,QR,DSN,Rounded Eye Profiles,HST-005,Properties,unmapped
+QR-DSN-006,QR,DSN,Minimal Noise Configuration,PUB-006,Selection,unmapped
+QR-DSN-007,QR,DSN,Quiet Zone Standards,ADM-007,Merchants,unmapped
+QR-DSN-008,QR,DSN,Print Dimension Standards,RDR-008,Rider Workspace,unmapped
+QR-AUD-001,QR,AUD,Scan History,CNS-001,Splash,unmapped
+QR-AUD-002,QR,AUD,Verification Results,CNS-002,Welcome,unmapped
+QR-AUD-003,QR,AUD,User History,CNS-003,Sign In,unmapped
+QR-AUD-004,QR,AUD,Device History,CNS-004,Sign Up,unmapped
+QR-AUD-005,QR,AUD,Location Readiness Logging,HST-005,Properties,unmapped
+QR-AUD-006,QR,AUD,Timestamp Logging,PUB-006,Selection,unmapped
+QR-AUD-007,QR,AUD,Status Change Logging,RDR-007,Onboarding Status,review
+QR-AUD-008,QR,AUD,Security Event Logging,RDR-008,Rider Workspace,unmapped
+QR-AUD-009,QR,AUD,Operational Logs,ADM-009,Riders,unmapped

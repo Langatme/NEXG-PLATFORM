@@ -1,0 +1,179 @@
+// docs/registry/action-sheet.ts
+// Registry configuration for action sheet component and demo
+
+export const actionSheetRegistry = {
+  // Main action sheet component
+  'action-sheet': {
+    name: 'action-sheet',
+    description:
+      'A native-feeling action sheet component that provides a menu of options triggered from the bottom of the screen.',
+    type: 'registry:ui',
+    dependencies: [
+      'react-native-reanimated',
+      'react-native-worklets',
+      'react-native-safe-area-context',
+    ],
+    registryDependencies: ['text', 'view'],
+    hooks: ['useColor', 'useHaptics'],
+    theme: ['globals'],
+    files: [
+      {
+        type: 'registry:ui',
+        path: 'src/components/ui/action-sheet.tsx',
+        target: 'components/ui/action-sheet.tsx',
+      },
+    ],
+    preview: {
+      light: 'https://demo.ahmedbna.com/0007-action-sheet-demo.MP4',
+      dark: 'https://demo.ahmedbna.com/0007-action-sheet-demo.MP4',
+    },
+  },
+
+  // Default demo
+  'action-sheet-demo': {
+    name: 'action-sheet-demo',
+    description: 'A basic action sheet with multiple options',
+    type: 'registry:example',
+    registryDependencies: ['action-sheet', 'button', 'view'],
+    hooks: [],
+    theme: [],
+    files: [
+      {
+        type: 'registry:example',
+        path: 'src/demo/action-sheet/action-sheet-demo.tsx',
+        target: 'components/demo/action-sheet/action-sheet-demo.tsx',
+      },
+    ],
+    preview: {
+      light: 'https://demo.ahmedbna.com/0007-action-sheet-demo.MP4',
+      dark: 'https://demo.ahmedbna.com/0007-action-sheet-demo.MP4',
+    },
+  },
+
+  // Icons example
+  'action-sheet-icons': {
+    name: 'action-sheet-icons',
+    description: 'An action sheet with icons next to each option',
+    type: 'registry:example',
+    registryDependencies: ['action-sheet', 'button', 'icon'],
+    hooks: [],
+    theme: [],
+    files: [
+      {
+        type: 'registry:example',
+        path: 'src/demo/action-sheet/action-sheet-icons.tsx',
+        target: 'components/demo/action-sheet/action-sheet-icons.tsx',
+      },
+    ],
+    preview: {
+      light: 'https://demo.ahmedbna.com/0008-action-sheet-icons.MP4',
+      dark: 'https://demo.ahmedbna.com/0008-action-sheet-icons.MP4',
+    },
+  },
+
+  // Destructive example
+  'action-sheet-destructive': {
+    name: 'action-sheet-destructive',
+    description:
+      'An action sheet featuring destructive actions with appropriate styling',
+    type: 'registry:example',
+    registryDependencies: ['action-sheet', 'button', 'icon'],
+    hooks: [],
+    theme: [],
+    files: [
+      {
+        type: 'registry:example',
+        path: 'src/demo/action-sheet/action-sheet-destructive.tsx',
+        target: 'components/demo/action-sheet/action-sheet-destructive.tsx',
+      },
+    ],
+    preview: {
+      light: 'https://demo.ahmedbna.com/0009-action-sheet-destructive.MP4',
+      dark: 'https://demo.ahmedbna.com/0009-action-sheet-destructive.MP4',
+    },
+  },
+
+  // Disabled example
+  'action-sheet-disabled': {
+    name: 'action-sheet-disabled',
+    description: 'An action sheet with some disabled options',
+    type: 'registry:example',
+    registryDependencies: ['action-sheet', 'button', 'icon'],
+    hooks: [],
+    theme: [],
+    files: [
+      {
+        type: 'registry:example',
+        path: 'src/demo/action-sheet/action-sheet-disabled.tsx',
+        target: 'components/demo/action-sheet/action-sheet-disabled.tsx',
+      },
+    ],
+    preview: {
+      light: 'https://demo.ahmedbna.com/0010-action-sheet-disabled.MP4',
+      dark: 'https://demo.ahmedbna.com/0010-action-sheet-disabled.MP4',
+    },
+  },
+
+  // Custom styled example
+  'action-sheet-styled': {
+    name: 'action-sheet-styled',
+    description: 'An action sheet with custom styling and branding',
+    type: 'registry:example',
+    registryDependencies: ['action-sheet', 'button', 'icon'],
+    hooks: [],
+    theme: [],
+    files: [
+      {
+        type: 'registry:example',
+        path: 'src/demo/action-sheet/action-sheet-styled.tsx',
+        target: 'components/demo/action-sheet/action-sheet-styled.tsx',
+      },
+    ],
+    preview: {
+      light: 'https://demo.ahmedbna.com/0011-action-sheet-styled.MP4',
+      dark: 'https://demo.ahmedbna.com/0011-action-sheet-styled.MP4',
+    },
+  },
+
+  // Long list example
+  'action-sheet-long': {
+    name: 'action-sheet-long',
+    description: 'An action sheet with many options that scrolls',
+    type: 'registry:example',
+    registryDependencies: ['action-sheet', 'button', 'icon'],
+    hooks: [],
+    theme: [],
+    files: [
+      {
+        type: 'registry:example',
+        path: 'src/demo/action-sheet/action-sheet-long.tsx',
+        target: 'components/demo/action-sheet/action-sheet-long.tsx',
+      },
+    ],
+    preview: {
+      light: 'https://demo.ahmedbna.com/0012-action-sheet-long.MP4',
+      dark: 'https://demo.ahmedbna.com/0012-action-sheet-long.MP4',
+    },
+  },
+
+  // Hook usage example
+  'action-sheet-hook': {
+    name: 'action-sheet-hook',
+    description: 'Using the useActionSheet hook for easier management',
+    type: 'registry:example',
+    registryDependencies: ['action-sheet', 'button', 'view', 'icon'],
+    hooks: [],
+    theme: [],
+    files: [
+      {
+        type: 'registry:example',
+        path: 'src/demo/action-sheet/action-sheet-hook.tsx',
+        target: 'components/demo/action-sheet/action-sheet-hook.tsx',
+      },
+    ],
+    preview: {
+      light: 'https://demo.ahmedbna.com/0013-action-sheet-hook.MP4',
+      dark: 'https://demo.ahmedbna.com/0013-action-sheet-hook.MP4',
+    },
+  },
+};

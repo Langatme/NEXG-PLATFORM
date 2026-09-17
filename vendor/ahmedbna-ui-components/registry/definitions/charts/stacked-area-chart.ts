@@ -1,0 +1,118 @@
+// definitions/charts/stacked-area-chart.ts
+// Registry configuration for stacked-area-chart component and demos
+
+export const stackedAreaChartRegistry = {
+  // Main stacked-area-chart component
+  'stacked-area-chart': {
+    name: 'stacked-area-chart',
+    description:
+      'A customizable stacked area chart component with smooth animations and gradient fills for visualizing multiple data series over time.',
+    type: 'registry:ui',
+    dependencies: [
+      'react-native-svg',
+      'react-native-reanimated',
+      'react-native-worklets',
+    ],
+    registryDependencies: [],
+    hooks: ['useColor'],
+    theme: ['globals'],
+    files: [
+      {
+        type: 'registry:ui',
+        path: 'src/components/charts/stacked-area-chart.tsx',
+        target: 'components/charts/stacked-area-chart.tsx',
+      },
+    ],
+    preview: {
+      light: 'https://demo.ahmedbna.com/0387-stacked-area-chart-demo.MOV',
+      dark: 'https://demo.ahmedbna.com/0387-stacked-area-chart-demo.MOV',
+    },
+  },
+
+  // Basic stacked area chart demo
+  'stacked-area-chart-demo': {
+    name: 'stacked-area-chart-demo',
+    description:
+      'A stacked area chart with smooth animations and gradient fills',
+    type: 'registry:example',
+    registryDependencies: ['stacked-area-chart', 'chart-container'],
+    hooks: [],
+    theme: [],
+    files: [
+      {
+        type: 'registry:example',
+        path: 'src/demo/charts/stacked-area-chart/stacked-area-chart-demo.tsx',
+        target:
+          'components/demo/charts/stacked-area-chart/stacked-area-chart-demo.tsx',
+      },
+    ],
+    preview: {
+      light: 'https://demo.ahmedbna.com/0387-stacked-area-chart-demo.MOV',
+      dark: 'https://demo.ahmedbna.com/0387-stacked-area-chart-demo.MOV',
+    },
+  },
+
+  'stacked-area-chart-sample': {
+    name: 'stacked-area-chart-sample',
+    description: 'A sample stacked area chart with revenue data',
+    type: 'registry:example',
+    registryDependencies: ['stacked-area-chart', 'chart-container'],
+    hooks: [],
+    theme: [],
+    files: [
+      {
+        type: 'registry:example',
+        path: 'src/demo/charts/stacked-area-chart/stacked-area-chart-sample.tsx',
+        target:
+          'components/demo/charts/stacked-area-chart/stacked-area-chart-sample.tsx',
+      },
+    ],
+    preview: {
+      light: 'https://demo.ahmedbna.com/0388-stacked-area-chart-sample.MOV',
+      dark: 'https://demo.ahmedbna.com/0388-stacked-area-chart-sample.MOV',
+    },
+  },
+
+  'stacked-area-chart-styled': {
+    name: 'stacked-area-chart-styled',
+    description:
+      'A customized stacked area chart with custom colors and styling',
+    type: 'registry:example',
+    registryDependencies: ['stacked-area-chart', 'chart-container'],
+    hooks: [],
+    theme: [],
+    files: [
+      {
+        type: 'registry:example',
+        path: 'src/demo/charts/stacked-area-chart/stacked-area-chart-styled.tsx',
+        target:
+          'components/demo/charts/stacked-area-chart/stacked-area-chart-styled.tsx',
+      },
+    ],
+    preview: {
+      light: 'https://demo.ahmedbna.com/0389-stacked-area-chart-styled.MOV',
+      dark: 'https://demo.ahmedbna.com/0389-stacked-area-chart-styled.MOV',
+    },
+  },
+
+  'stacked-area-chart-large': {
+    name: 'stacked-area-chart-large',
+    description: 'A stacked area chart with large dataset',
+    type: 'registry:example',
+    registryDependencies: ['stacked-area-chart', 'chart-container'],
+    hooks: [],
+    theme: [],
+    files: [
+      {
+        type: 'registry:example',
+        path: 'src/demo/charts/stacked-area-chart/stacked-area-chart-large.tsx',
+        target:
+          'components/demo/charts/stacked-area-chart/stacked-area-chart-large.tsx',
+      },
+    ],
+    preview: {
+      light: 'https://demo.ahmedbna.com/0390-stacked-area-chart-large.MOV',
+      dark: 'https://demo.ahmedbna.com/0390-stacked-area-chart-large.MOV',
+    },
+  },
+};

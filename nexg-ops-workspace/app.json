@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "NEXG Ops",
+    "slug": "nexg-ops",
+    "scheme": "nexg-ops",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "com.nexg.ops"
+    },
+    "android": {
+      "package": "com.nexg.ops",
+      "edgeToEdgeEnabled": true
+    },
+    "plugins": [
+      "expo-router",
+      "expo-splash-screen",
+      "expo-font",
+      "expo-image"
+    ],
+    "experiments": {
+      "reactCompiler": false
+    }
+  }
+}

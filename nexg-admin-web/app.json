@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "NEXG Admin",
+    "slug": "nexg-admin",
+    "scheme": "nexg-admin",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "com.nexg.admin"
+    },
+    "android": {
+      "package": "com.nexg.admin",
+      "edgeToEdgeEnabled": true
+    },
+    "plugins": [
+      "expo-router",
+      "expo-splash-screen",
+      "expo-font",
+      "expo-image"
+    ],
+    "experiments": {
+      "reactCompiler": false
+    }
+  }
+}

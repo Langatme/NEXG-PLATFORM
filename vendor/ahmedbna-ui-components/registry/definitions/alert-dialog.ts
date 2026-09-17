@@ -1,0 +1,93 @@
+// Registry configuration for alert-dialog component and demo
+
+export const alertDialogRegistry = {
+  // Main alert-dialog component
+  'alert-dialog': {
+    name: 'alert-dialog',
+    description:
+      'A modal dialog that interrupts the user with important content and expects a response.',
+    type: 'registry:ui',
+    dependencies: ['react-native-reanimated', 'react-native-worklets'],
+    registryDependencies: ['card', 'button', 'text', 'view'],
+    hooks: ['useColor'],
+    theme: [],
+    files: [
+      {
+        type: 'registry:ui',
+        path: 'src/components/ui/alert-dialog.tsx',
+        target: 'components/ui/alert-dialog.tsx',
+      },
+    ],
+    preview: {
+      // todo: prepare preview videos
+      light: 'https://demo.ahmedbna.com/0014-alert-dialog-demo.MP4',
+      dark: 'https://demo.ahmedbna.com/0014-alert-dialog-demo.MP4',
+    },
+  },
+
+  // Basic demo
+  'alert-dialog-demo': {
+    name: 'alert-dialog-demo',
+    description: 'A basic alert dialog with confirmation buttons',
+    type: 'registry:example',
+    registryDependencies: ['alert-dialog', 'button', 'view'],
+    hooks: [],
+    theme: [],
+    files: [
+      {
+        type: 'registry:example',
+        path: 'src/demo/alert-dialog/alert-dialog-demo.tsx',
+        target: 'components/demo/alert-dialog/alert-dialog-demo.tsx',
+      },
+    ],
+    preview: {
+      // todo: prepare preview videos
+      light: 'https://demo.ahmedbna.com/0014-alert-dialog-demo.MP4',
+      dark: 'https://demo.ahmedbna.com/0014-alert-dialog-demo.MP4',
+    },
+  },
+
+  // Destructive action demo
+  'alert-dialog-destructive': {
+    name: 'alert-dialog-destructive',
+    description: 'An alert dialog for destructive actions like delete',
+    type: 'registry:example',
+    registryDependencies: ['alert-dialog', 'button', 'view'],
+    hooks: [],
+    theme: [],
+    files: [
+      {
+        type: 'registry:example',
+        path: 'src/demo/alert-dialog/alert-dialog-destructive.tsx',
+        target: 'components/demo/alert-dialog/alert-dialog-destructive.tsx',
+      },
+    ],
+    preview: {
+      // todo: prepare preview videos
+      light: 'https://demo.ahmedbna.com/0015-alert-dialog-destructive.MP4',
+      dark: 'https://demo.ahmedbna.com/0015-alert-dialog-destructive.MP4',
+    },
+  },
+
+  // Custom styled demo
+  'alert-dialog-custom': {
+    name: 'alert-dialog-custom',
+    description: 'A custom styled alert dialog with different appearance',
+    type: 'registry:example',
+    registryDependencies: ['alert-dialog', 'button', 'view', 'text'],
+    hooks: [],
+    theme: [],
+    files: [
+      {
+        type: 'registry:example',
+        path: 'src/demo/alert-dialog/alert-dialog-custom.tsx',
+        target: 'components/demo/alert-dialog/alert-dialog-custom.tsx',
+      },
+    ],
+    preview: {
+      // todo: prepare preview videos
+      light: 'https://ui.ahmedbna.com/alert-dialog-custom.mov',
+      dark: 'https://ui.ahmedbna.com/alert-dialog-custom-dark.mov',
+    },
+  },
+};

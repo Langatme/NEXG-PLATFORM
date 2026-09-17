@@ -1,0 +1,88 @@
+{
+  "name": "@bna-ui/registry",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "Single source of truth for every BNA UI component, hook, theme file and demo.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "default": "./dist/schema.js"
+    },
+    "./resolve": {
+      "types": "./dist/resolve.d.ts",
+      "default": "./dist/resolve.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
+    },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsx scripts/build.ts && tsc -p tsconfig.build.json && rm -rf dist/generated/r && cp -R generated/r dist/generated/r && node scripts/verify-payloads.mjs",
+    "dev": "tsx scripts/build.ts",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.src.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf generated dist .turbo",
+    "verify": "node scripts/verify-payloads.mjs",
+    "check-meta-drift": "tsx scripts/check-meta-drift.ts",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "zod": "3.25.56"
+  },
+  "devDependencies": {
+    "@bna-ui/eslint-config": "workspace:*",
+    "@bna-ui/typescript-config": "workspace:*",
+    "@expo/metro-runtime": "~57.0.8",
+    "@expo/vector-icons": "^15.0.2",
+    "@hookform/resolvers": "^5.0.1",
+    "@types/node": "^22.10.2",
+    "@types/react": "~19.2.2",
+    "eslint": "^9.17.0",
+    "expo": "~57.0.9",
+    "expo-asset": "~57.0.8",
+    "expo-audio": "~57.0.3",
+    "expo-blur": "~57.0.2",
+    "expo-camera": "~57.0.3",
+    "expo-document-picker": "~57.0.1",
+    "expo-haptics": "~57.0.1",
+    "expo-image": "~57.0.1",
+    "expo-image-picker": "~57.0.7",
+    "expo-linear-gradient": "~57.0.1",
+    "expo-media-library": "~57.0.3",
+    "expo-router": "~57.0.9",
+    "expo-video": "~57.0.2",
+    "expo-web-browser": "~57.0.2",
+    "lucide-react-native": "^1.27.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-hook-form": "^7.57.0",
+    "react-native": "0.86.2",
+    "react-native-gesture-handler": "~3.1.0",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-svg": "15.15.4",
+    "react-native-web": "~0.21.0",
+    "react-native-worklets": "0.10.1",
+    "tsx": "^4.19.2",
+    "typescript": "~6.0.3",
+    "vitest": "^2.1.8",
+    "zod": "^3.25.50"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "NEXG Host",
+    "slug": "nexg-host",
+    "scheme": "nexg-host",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "com.nexg.host"
+    },
+    "android": {
+      "package": "com.nexg.host",
+      "edgeToEdgeEnabled": true
+    },
+    "plugins": [
+      "expo-router",
+      "expo-splash-screen",
+      "expo-font",
+      "expo-image"
+    ],
+    "splash": {
+      "backgroundColor": "#FFFFFF",
+      "resizeMode": "contain",
+      "dark": {
+        "backgroundColor": "#0D0D10"
+      }
+    },
+    "experiments": {
+      "reactCompiler": false
+    }
+  }
+}
